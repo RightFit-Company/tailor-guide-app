@@ -7,14 +7,14 @@ export const Route = createFileRoute("/")({
       { title: "RightFit — Will it fit you right?" },
       {
         name: "description",
-        content:
-          "Enter your body measurements and the measurements of a top or trousers. RightFit tells you if it will be baggy, slim, small, or just right.",
+          content:
+          "Enter your body measurements, pick a brand and size, and RightFit tells you if it will be baggy, slim, small, or just right.",
       },
       { property: "og:title", content: "RightFit — Will it fit you right?" },
       {
         property: "og:description",
         content:
-          "Compare your body with any garment's measurements and get an honest fit verdict: baggy, slim, small, or just right.",
+          "Compare your body with any brand's size chart and get an honest fit verdict: baggy, slim, small, or just right.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
