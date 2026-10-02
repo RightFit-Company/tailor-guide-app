@@ -16,7 +16,7 @@ const COLORS: Record<string, string> = {
 export function colorFromDescription(desc: string, type: GarmentType): string {
   const d = desc.toLowerCase();
   let hex = Object.keys(COLORS).find((k) => d.includes(k));
-  let base = hex ? COLORS[hex]! : /jean|denim/.test(d) ? COLORS.denim! : type === "top" ? "#e9e4da" : "#3a3d44";
+  const base = hex ? COLORS[hex]! : /jean|denim/.test(d) ? COLORS["denim"]! : type === "top" ? "#e9e4da" : "#3a3d44";
   const c = new THREE.Color(base);
   if (/\bdark\b|deep/.test(d)) c.multiplyScalar(0.55);
   if (/\blight\b|pale|pastel/.test(d)) c.lerp(new THREE.Color("#ffffff"), 0.4);
