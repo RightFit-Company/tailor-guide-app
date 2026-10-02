@@ -222,7 +222,7 @@ function Index() {
         <div className="mb-6 text-center">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Check a fit</h2>
           <p className="mx-auto mt-2 max-w-lg font-medium text-ink/65">
-            Measure once, check every garment against your body.
+            Measure once, then check any brand and size against your body.
           </p>
         </div>
         <FitChecker />
@@ -284,9 +284,9 @@ function Index() {
             ✦
           </span>
           <p className="max-w-2xl text-sm font-medium leading-relaxed text-ink/80">
-            <strong className="font-display text-base font-bold">Garment tip:</strong> lay the piece
-            flat on a table and measure around the outside. In a hurry? Measure straight across the
-            front only, tick “flat across” in step two, and we'll double it for you.
+            <strong className="font-display text-base font-bold">Brand tip:</strong> sizes aren't
+            standardised — a medium in one shop can be a large in another. RightFit uses each
+            brand's own size guide, so the verdict matches the label you're actually holding.
           </p>
         </div>
       </section>
