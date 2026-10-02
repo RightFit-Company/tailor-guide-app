@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Fit logic is pure frontend in src/lib/fit.ts (ease thresholds in cm); no backend needed for fit checks. Body measurements persist in localStorage only.
