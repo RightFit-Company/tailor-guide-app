@@ -91,9 +91,9 @@ const MEASURED_PAIRS: Record<GarmentType, { key: "chest" | "waist" | "hips"; lab
 };
 
 export interface BodyCm {
-  chest?: number;
-  waist?: number;
-  hips?: number;
+  chest?: number | undefined;
+  waist?: number | undefined;
+  hips?: number | undefined;
 }
 
 export function computeFit(
