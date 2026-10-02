@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+
+const BodyViewer = lazy(() => import("./body-viewer"));
+const loadColor = () => import("./body-viewer").then((m) => m.colorFromDescription);
 import {
   CM_PER_IN,
   VERDICT_META,
