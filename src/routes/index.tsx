@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
       {
         name: "twitter:description",
         content:
-          "Compare your body with any garment's measurements and get an honest fit verdict: baggy, slim, small, or just right.",
+          "Compare your body with any brand's size chart and get an honest fit verdict: baggy, slim, small, or just right.",
       },
     ],
   }),
@@ -133,8 +133,8 @@ function Index() {
               right?
             </h1>
             <p className="mt-6 max-w-md text-lg font-medium text-ink/75">
-              Enter your body measurements and the size of your top or trousers. We'll tell you if
-              it'll be baggy, slim, small, or just right.
+              Enter your body measurements, then pick the brand and size on the label. We'll tell
+              you if it'll be baggy, slim, small, or just right.
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
               <a
