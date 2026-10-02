@@ -1,7 +1,8 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 
-const BodyViewer = lazy(() => import("./body-viewer"));
-const loadColor = () => import("./body-viewer").then((m) => m.colorFromDescription);
+// 3D try-on viewer (src/components/body-viewer.tsx) — not yet wired into the verdict step.
+void Suspense;
+void lazy;
 import {
   CM_PER_IN,
   VERDICT_META,
