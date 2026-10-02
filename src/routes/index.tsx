@@ -7,14 +7,14 @@ export const Route = createFileRoute("/")({
       { title: "RightFit — Will it fit you right?" },
       {
         name: "description",
-        content:
-          "Enter your body measurements and the measurements of a top or trousers. RightFit tells you if it will be baggy, slim, small, or just right.",
+          content:
+          "Enter your body measurements, pick a brand and size, and RightFit tells you if it will be baggy, slim, small, or just right.",
       },
       { property: "og:title", content: "RightFit — Will it fit you right?" },
       {
         property: "og:description",
         content:
-          "Compare your body with any garment's measurements and get an honest fit verdict: baggy, slim, small, or just right.",
+          "Compare your body with any brand's size chart and get an honest fit verdict: baggy, slim, small, or just right.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
       {
         name: "twitter:description",
         content:
-          "Compare your body with any garment's measurements and get an honest fit verdict: baggy, slim, small, or just right.",
+          "Compare your body with any brand's size chart and get an honest fit verdict: baggy, slim, small, or just right.",
       },
     ],
   }),
@@ -133,8 +133,8 @@ function Index() {
               right?
             </h1>
             <p className="mt-6 max-w-md text-lg font-medium text-ink/75">
-              Enter your body measurements and the size of your top or trousers. We'll tell you if
-              it'll be baggy, slim, small, or just right.
+              Enter your body measurements, then pick the brand and size on the label. We'll tell
+              you if it'll be baggy, slim, small, or just right.
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
               <a
@@ -222,7 +222,7 @@ function Index() {
         <div className="mb-6 text-center">
           <h2 className="font-display text-3xl font-bold sm:text-4xl">Check a fit</h2>
           <p className="mx-auto mt-2 max-w-lg font-medium text-ink/65">
-            Measure once, check every garment against your body.
+            Measure once, then check any brand and size against your body.
           </p>
         </div>
         <FitChecker />
@@ -284,9 +284,9 @@ function Index() {
             ✦
           </span>
           <p className="max-w-2xl text-sm font-medium leading-relaxed text-ink/80">
-            <strong className="font-display text-base font-bold">Garment tip:</strong> lay the piece
-            flat on a table and measure around the outside. In a hurry? Measure straight across the
-            front only, tick “flat across” in step two, and we'll double it for you.
+            <strong className="font-display text-base font-bold">Brand tip:</strong> sizes aren't
+            standardised — a medium in one shop can be a large in another. RightFit uses each
+            brand's own size guide, so the verdict matches the label you're actually holding.
           </p>
         </div>
       </section>

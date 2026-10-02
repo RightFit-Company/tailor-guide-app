@@ -5,11 +5,13 @@ import {
   computeFit,
   easeLabel,
   fmt,
+  toCm,
   type BodyCm,
   type FitResult,
   type GarmentType,
   type Unit,
 } from "@/lib/fit";
+import { BRANDS, getSizeEntry, type Gender } from "@/lib/brands";
 
 const STORAGE_KEY = "rightfit.body.v1";
 
@@ -33,20 +35,6 @@ const BODY_FIELDS: { key: keyof Values; label: string; hint: string }[] = [
     hint: "Around the fullest part of your hips and seat. Needed for trousers.",
   },
 ];
-
-const GARMENT_FIELDS: Record<
-  GarmentType,
-  { key: keyof Values; label: string; hint: string }[]
-> = {
-  top: [
-    { key: "chest", label: "Chest", hint: "Around the fullest part of the garment's chest." },
-    { key: "waist", label: "Waist", hint: "Around the narrowest part of the garment's body." },
-  ],
-  trousers: [
-    { key: "waist", label: "Waist", hint: "Around the inside of the waistband, laid relaxed." },
-    { key: "hips", label: "Hips", hint: "Around the widest part of the seat and thighs." },
-  ],
-};
 
 const STEPS = ["Your body", "The garment", "Verdict"] as const;
 
@@ -116,13 +104,42 @@ function StepChip({ index, label, state }: { index: number; label: string; state
   );
 }
 
+function ToggleGroup<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-ink bg-paper p-1">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          className={`rounded-xl border-2 border-transparent px-4 py-2.5 font-display text-base font-bold transition-all ${
+            value === o.value
+              ? "border-ink bg-white text-ink shadow-hard-xs"
+              : "text-ink/50 hover:text-ink"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function FitChecker() {
   const [unit, setUnit] = useState<Unit>("cm");
   const [step, setStep] = useState(1);
-  const [garmentType, setGarmentType] = useState<GarmentType>("top");
   const [body, setBody] = useState<Values>(EMPTY);
-  const [garment, setGarment] = useState<Values>(EMPTY);
-  const [flat, setFlat] = useState(true);
+  const [gender, setGender] = useState<Gender>("womens");
+  const [garmentType, setGarmentType] = useState<GarmentType>("top");
+  const [brandId, setBrandId] = useState(BRANDS[0]!.id);
+  const [sizeLabel, setSizeLabel] = useState<string>("");
 
   useEffect(() => {
     try {
@@ -150,29 +167,40 @@ export default function FitChecker() {
       return String(Math.round(v * 10) / 10);
     };
     setBody((b) => ({ chest: convert(b.chest), waist: convert(b.waist), hips: convert(b.hips) }));
-    setGarment((g) => ({ chest: convert(g.chest), waist: convert(g.waist), hips: convert(g.hips) }));
     setUnit(next);
   };
 
-  const bodyParsed = parseValues(body);
-  const garmentParsed = parseValues(garment);
+  const brand = BRANDS.find((b) => b.id === brandId) ?? BRANDS[0]!;
+  const sizes = brand.charts[gender][garmentType];
+  const sizeEntry = sizeLabel ? getSizeEntry(brandId, gender, garmentType, sizeLabel) : undefined;
 
+  const bodyParsed = parseValues(body);
   const bodyReady = bodyParsed.chest != null && bodyParsed.waist != null;
   const hipsMissing = garmentType === "trousers" && bodyParsed.hips == null;
-  const garmentFields = GARMENT_FIELDS[garmentType];
-  const garmentReady = garmentFields.every((f) => garmentParsed[f.key] != null);
+  const garmentReady = sizeEntry != null;
 
   const result: FitResult | null = useMemo(() => {
-    if (step !== 3) return null;
-    return computeFit(garmentType, unit, bodyParsed, garmentParsed, flat);
+    if (step !== 3 || !sizeEntry) return null;
+    // Charts are in cm — convert the body to cm and compute in cm.
+    const bodyCm: BodyCm = {
+      chest: bodyParsed.chest != null ? toCm(bodyParsed.chest, unit) : undefined,
+      waist: bodyParsed.waist != null ? toCm(bodyParsed.waist, unit) : undefined,
+      hips: bodyParsed.hips != null ? toCm(bodyParsed.hips, unit) : undefined,
+    };
+    const garmentCm: BodyCm = {
+      chest: sizeEntry.chest,
+      waist: sizeEntry.waist,
+      hips: sizeEntry.hips,
+    };
+    return computeFit(garmentType, "cm", bodyCm, garmentCm, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, garmentType, unit, body, garment, flat]);
+  }, [step, garmentType, unit, body, sizeEntry]);
 
   const meta = result ? VERDICT_META[result.verdict] : null;
   const markerPos = result ? Math.min(97, Math.max(3, Math.round(result.tightness * 100))) : 50;
 
   const checkAnother = () => {
-    setGarment(EMPTY);
+    setSizeLabel("");
     setStep(2);
   };
 
@@ -237,54 +265,89 @@ export default function FitChecker() {
       {/* STEP 2 — garment */}
       {step === 2 && (
         <div className="mt-6">
-          <h3 className="font-display text-2xl font-bold sm:text-3xl">Measure the garment</h3>
+          <h3 className="font-display text-2xl font-bold sm:text-3xl">Pick the garment</h3>
           <p className="mt-1 text-sm font-medium text-ink/60">
-            Lay it on a table and measure around the outside. Not sure? Measure straight across the
-            front and tick “flat across” below — we’ll double it for you.
+            Tell us who it's for, the brand and the size on the label — we'll look up how that size
+            actually measures.
           </p>
 
-          <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border-2 border-ink bg-paper p-1">
-            {(["top", "trousers"] as GarmentType[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => setGarmentType(t)}
-                className={`rounded-xl border-2 border-transparent px-4 py-2.5 font-display text-base font-bold capitalize transition-all ${
-                  garmentType === t
-                    ? "border-ink bg-white text-ink shadow-hard-xs"
-                    : "text-ink/50 hover:text-ink"
-                }`}
-              >
-                {t === "top" ? "Top" : "Trousers"}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {garmentFields.map((f) => (
-              <NumberField
-                key={f.key}
-                label={f.label}
-                hint={f.hint}
-                unit={unit}
-                value={garment[f.key]}
-                onChange={(v) => setGarment((g) => ({ ...g, [f.key]: v }))}
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">
+                Who's it for?
+              </p>
+              <ToggleGroup<Gender>
+                options={[
+                  { value: "womens", label: "Womens" },
+                  { value: "mens", label: "Mens" },
+                ]}
+                value={gender}
+                onChange={(g) => {
+                  setGender(g);
+                  setSizeLabel("");
+                }}
               />
-            ))}
+            </div>
+            <div>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">
+                What is it?
+              </p>
+              <ToggleGroup<GarmentType>
+                options={[
+                  { value: "top", label: "Top" },
+                  { value: "trousers", label: "Trousers" },
+                ]}
+                value={garmentType}
+                onChange={(t) => {
+                  setGarmentType(t);
+                  setSizeLabel("");
+                }}
+              />
+            </div>
           </div>
 
-          <button
-            onClick={() => setFlat((f) => !f)}
-            className="mt-4 inline-flex items-center gap-3 rounded-2xl border-2 border-ink bg-white px-4 py-2.5 text-sm font-semibold shadow-hard-xs transition-all hover:-translate-y-0.5 hover:shadow-hard-sm"
-          >
-            <span
-              className={`grid size-5 place-items-center rounded-md border-2 border-ink font-display text-[11px] font-bold text-white ${
-                flat ? "bg-mint" : "bg-white text-transparent"
-              }`}
-            >
-              ✓
-            </span>
-            I measured flat across the front — double it for me
-          </button>
+          <div className="mt-4">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">Brand</p>
+            <div className="flex flex-wrap gap-2">
+              {BRANDS.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => {
+                    setBrandId(b.id);
+                    setSizeLabel("");
+                  }}
+                  className={`rounded-full border-2 border-ink px-4 py-2 font-display text-sm font-bold transition-all ${
+                    brandId === b.id
+                      ? "bg-brand text-white shadow-hard-xs"
+                      : "bg-white text-ink/60 hover:text-ink"
+                  }`}
+                >
+                  {b.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">
+              Size on the label
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {sizes.map((s) => (
+                <button
+                  key={s.label}
+                  onClick={() => setSizeLabel(s.label)}
+                  className={`rounded-2xl border-2 border-ink px-4 py-2.5 font-display text-base font-bold transition-all ${
+                    sizeLabel === s.label
+                      ? "bg-ink text-white shadow-hard-xs"
+                      : "bg-white text-ink/60 hover:text-ink"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
             <button
@@ -300,7 +363,7 @@ export default function FitChecker() {
                 </span>
               )}
               {!garmentReady && !hipsMissing && (
-                <span className="text-xs font-bold text-ink/50">Fill in the garment measurements</span>
+                <span className="text-xs font-bold text-ink/50">Pick a size to continue</span>
               )}
               <button
                 disabled={!garmentReady || hipsMissing}
@@ -324,7 +387,7 @@ export default function FitChecker() {
             <span
               className={`rounded-full border-2 border-ink px-3 py-1 text-xs font-bold capitalize ${meta.chip}`}
             >
-              {garmentType}
+              {brand.name} · {gender} · {sizeLabel}
             </span>
           </div>
 
@@ -381,6 +444,11 @@ export default function FitChecker() {
               );
             })}
           </div>
+
+          <p className="mt-4 text-xs font-medium text-ink/50">
+            Based on {brand.name}'s typical {gender} {garmentType} measurements for size{" "}
+            {sizeLabel}. Brands vary season to season — when in doubt, try it on.
+          </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
             <button
