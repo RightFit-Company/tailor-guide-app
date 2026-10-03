@@ -470,7 +470,7 @@ export default function FitChecker() {
           <div className="mt-5 flex flex-col gap-3 rounded-2xl border-2 border-ink bg-sun p-4 shadow-hard-xs sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-display text-lg font-bold">See your measurements come to life</p>
-              <p className="text-sm font-medium text-ink/65">Scan your clothes, build outfits, and preview them on your own 3D figure.</p>
+              <p className="text-sm font-medium text-ink/65">Scan your clothes, build outfits, and create realistic photos of people wearing them.</p>
             </div>
             <Link to="/wardrobe" className="shrink-0 rounded-2xl border-2 border-ink bg-white px-4 py-2.5 text-center font-display font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
               Open My Wardrobe →
@@ -754,7 +754,7 @@ export default function FitChecker() {
           <div className="mt-5 flex flex-col gap-3 rounded-2xl border-2 border-ink bg-sun p-4 shadow-hard-xs sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-display text-xl font-bold">Build the whole outfit</p>
-              <p className="text-sm font-medium text-ink/65">Put scanned tops and trousers together on your measurement-shaped 3D figure.</p>
+              <p className="text-sm font-medium text-ink/65">Put scanned tops and trousers together, then create a realistic outfit photo.</p>
             </div>
             <Link to="/wardrobe" className="shrink-0 rounded-2xl border-2 border-ink bg-white px-5 py-3 text-center font-display font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
               Try My Wardrobe →
