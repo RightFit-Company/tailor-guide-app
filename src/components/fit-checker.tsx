@@ -4,7 +4,6 @@ import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 void Suspense;
 void lazy;
 import {
-  CM_PER_IN,
   VERDICT_META,
   computeFit,
   easeLabel,
@@ -19,10 +18,21 @@ import { BRANDS, getSizeEntry, type Gender } from "@/lib/brands";
 
 const STORAGE_KEY = "rightfit.body.v1";
 
-type Values = { chest: string; waist: string; hips: string };
-const EMPTY: Values = { chest: "", waist: "", hips: "" };
+type FieldValue = { value: string; unit: Unit };
+type Values = { chest: FieldValue; waist: FieldValue; hips: FieldValue; height: FieldValue };
+const EMPTY: Values = {
+  chest: { value: "", unit: "cm" },
+  waist: { value: "", unit: "cm" },
+  hips: { value: "", unit: "cm" },
+  height: { value: "", unit: "cm" },
+};
 
 const BODY_FIELDS: { key: keyof Values; label: string; hint: string }[] = [
+  {
+    key: "height",
+    label: "Height",
+    hint: "How tall you are, without shoes.",
+  },
   {
     key: "chest",
     label: "Chest",
@@ -40,16 +50,27 @@ const BODY_FIELDS: { key: keyof Values; label: string; hint: string }[] = [
   },
 ];
 
-const STEPS = ["Your body", "The garment", "Verdict"] as const;
+/** Older saved entries were plain strings in cm — wrap them so nothing is lost. */
+function normalizeField(raw: unknown): FieldValue {
+  if (typeof raw === "string") return { value: raw, unit: "cm" };
+  if (raw && typeof raw === "object") {
+    const f = raw as Partial<FieldValue>;
+    return {
+      value: typeof f.value === "string" ? f.value : "",
+      unit: f.unit === "in" ? "in" : "cm",
+    };
+  }
+  return { value: "", unit: "cm" };
+}
 
 function parseValues(values: Values): BodyCm {
-  const num = (s: string) => {
-    const trimmed = s.trim();
+  const cm = (f: FieldValue) => {
+    const trimmed = f.value.trim();
     if (!trimmed) return undefined;
     const n = Number(trimmed);
-    return Number.isFinite(n) && n > 0 ? n : undefined;
+    return Number.isFinite(n) && n > 0 ? toCm(n, f.unit) : undefined;
   };
-  return { chest: num(values.chest), waist: num(values.waist), hips: num(values.hips) };
+  return { chest: cm(values.chest), waist: cm(values.waist), hips: cm(values.hips) };
 }
 
 function NumberField({
