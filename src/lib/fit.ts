@@ -138,3 +138,41 @@ export function easeLabel(easeCm: number, unit: Unit): string {
   const sign = easeCm < 0 ? "−" : "+";
   return `${sign}${fmt(Math.abs(easeCm), unit)} ${unit}`;
 }
+
+/** How far (cm) each row's ease falls outside the "Just right" band; 0 = perfect. */
+function rightBandMiss(result: FitResult): number {
+  const t = RANGES[result.garment];
+  return result.rows.reduce((sum, r) => {
+    if (r.easeCm < t.slim) return sum + (t.slim - r.easeCm);
+    if (r.easeCm >= t.right) return sum + (r.easeCm - t.right);
+    return sum;
+  }, 0);
+}
+
+export interface SizeOption<S> {
+  size: S;
+  result: FitResult;
+  miss: number;
+}
+
+/**
+ * Compare a body (cm) against every size in a chart (cm). Returns all sizes
+ * in chart order plus the index of the best one: lowest distance outside the
+ * "Just right" band, ties going to the smaller size.
+ */
+export function recommendSize<S extends BodyCm>(
+  garment: GarmentType,
+  body: BodyCm,
+  sizes: S[],
+): { options: SizeOption<S>[]; bestIndex: number } {
+  const options: SizeOption<S>[] = [];
+  for (const size of sizes) {
+    const result = computeFit(garment, "cm", body, size, false);
+    if (result) options.push({ size, result, miss: rightBandMiss(result) });
+  }
+  let bestIndex = -1;
+  options.forEach((o, i) => {
+    if (bestIndex < 0 || o.miss < options[bestIndex]!.miss) bestIndex = i;
+  });
+  return { options, bestIndex };
+}
