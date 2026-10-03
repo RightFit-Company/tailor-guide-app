@@ -71,14 +71,20 @@ function normalizeField(raw: unknown): FieldValue {
   return { value: "", unit: "cm" };
 }
 
-function parseValues(values: Values): BodyCm {
+function parseValues(values: Values): BodyCm & { height?: number | undefined } {
   const cm = (f: FieldValue) => {
     const trimmed = f.value.trim();
     if (!trimmed) return undefined;
     const n = Number(trimmed);
     return Number.isFinite(n) && n > 0 ? toCm(n, f.unit) : undefined;
   };
-  return { chest: cm(values.chest), waist: cm(values.waist), hips: cm(values.hips) };
+  return {
+    chest: cm(values.chest),
+    waist: cm(values.waist),
+    hips: cm(values.hips),
+    height: cm(values.height),
+    inseam: cm(values.leg),
+  };
 }
 
 const STEPS = ["Your body", "The garment", "Verdict"] as const;
@@ -191,15 +197,21 @@ export default function FitChecker() {
   const [mode, setMode] = useState<"check" | "find">("check");
   const [bodyType, setBodyType] = useState<BodyType>("woman");
   const [cup, setCup] = useState<CupSize | "">("");
+  const [legMode, setLegMode] = useState<"auto" | "manual">("auto");
 
   useEffect(() => {
     try {
-      const p = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { bodyType?: BodyType; cup?: CupSize | "" };
+      const p = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as {
+        bodyType?: BodyType;
+        cup?: CupSize | "";
+        legMode?: "auto" | "manual";
+      };
       if (p.bodyType) {
         setBodyType(p.bodyType);
         setGender(p.bodyType === "man" ? "mens" : "womens");
       }
       if (p.cup) setCup(p.cup);
+      if (p.legMode) setLegMode(p.legMode);
     } catch {
       // ignore
     }
@@ -207,11 +219,11 @@ export default function FitChecker() {
 
   useEffect(() => {
     try {
-      localStorage.setItem("rightfit.profile.v1", JSON.stringify({ bodyType, cup }));
+      localStorage.setItem("rightfit.profile.v1", JSON.stringify({ bodyType, cup, legMode }));
     } catch {
       // ignore
     }
-  }, [bodyType, cup]);
+  }, [bodyType, cup, legMode]);
 
   useEffect(() => {
     try {
