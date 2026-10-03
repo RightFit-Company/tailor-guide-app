@@ -58,7 +58,7 @@ async function shrink(file: File): Promise<Blob> {
 }
 
 const card = "rounded-2xl border-2 border-ink bg-card shadow-[var(--shadow-hard)]";
-const btn = "rounded-full border-2 border-ink px-5 py-2.5 font-display font-semibold shadow-[3px_3px_0_0_var(--ink)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50";
+const btn = "min-h-11 rounded-full border-2 border-ink px-4 py-2.5 font-display font-semibold shadow-[3px_3px_0_0_var(--ink)] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50 sm:px-5";
 
 function AuthCard() {
   const [mode, setMode] = useState<"in" | "up">("in");
@@ -86,7 +86,7 @@ function AuthCard() {
   }
 
   return (
-    <div className={`${card} mx-auto max-w-md p-6`}>
+    <div className={`${card} mx-auto max-w-md p-4 sm:p-6`}>
       <h2 className="font-display text-2xl font-bold">{mode === "in" ? "Sign in to your wardrobe" : "Create your wardrobe"}</h2>
       <p className="mt-1 text-sm text-muted-foreground">Your clothes are saved to your account so they follow you to any device.</p>
       <Button type="button" variant="outline" onClick={google} className={`${btn} mt-5 h-auto w-full bg-card`}>
@@ -234,15 +234,15 @@ function WardrobePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 text-foreground">
+    <main className="min-h-screen bg-background px-3 py-5 text-foreground sm:px-4 sm:py-8">
       <div className="mx-auto max-w-5xl">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <Link to="/" className="font-display text-sm font-semibold underline">← Back to fit checker</Link>
           {user && (
             <Button type="button" variant="link" onClick={() => supabase.auth.signOut()} className="h-auto p-0 text-sm text-foreground underline"><LogOut aria-hidden="true" />Sign out</Button>
           )}
         </div>
-        <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">My Wardrobe</h1>
+        <h1 className="mt-4 font-display text-3xl font-bold sm:text-5xl">My Wardrobe</h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
           Scan your clothes, pick a top and trousers from your catalog, then create a realistic photo of someone wearing the outfit.
         </p>
@@ -251,26 +251,26 @@ function WardrobePage() {
           <div className="mt-8"><AuthCard /></div>
         ) : (
           <>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap sm:items-center">
               <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => {
                 const f = e.target.files?.[0];
                 e.target.value = "";
                 if (f) void scan(f);
               }} />
-              <Button disabled={!!stage} onClick={() => fileRef.current?.click()} className={`${btn} h-auto bg-brand text-primary-foreground`}>
+              <Button disabled={!!stage} onClick={() => fileRef.current?.click()} className={`${btn} h-auto w-full bg-brand text-primary-foreground sm:w-auto`}>
                 <Camera aria-hidden="true" />
                 {stage === "reading" ? "Reading your item…" : stage === "cutting" ? "Cutting it out…" : stage === "saving" ? "Adding it…" : "Scan a clothing item"}
               </Button>
-              <span className="text-sm text-muted-foreground">{items.length} item{items.length === 1 ? "" : "s"}</span>
+              <span className="text-center text-sm text-muted-foreground sm:text-left">{items.length} item{items.length === 1 ? "" : "s"}</span>
             </div>
             {error && <p className={`${card} mt-4 bg-sun p-3 text-sm font-medium text-ink`}>{error}</p>}
             {preview && (
               <img src={preview} alt="Cut-out in progress" className={`${card} mt-4 h-48 w-48 object-contain p-2 transition-[filter] ${stage === "cutting" ? "blur-md" : "blur-0"}`} />
             )}
 
-            <section className={`${card} mt-6 p-4 sm:p-6`} aria-labelledby="catalog-heading">
-              <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
-                <div>
+            <section className={`${card} mt-6 p-3 sm:p-6`} aria-labelledby="catalog-heading">
+              <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:mb-5">
+                <div className="min-w-0">
                   <h2 id="catalog-heading" className="font-display text-2xl font-bold">Your clothes</h2>
                   <p className="text-sm text-muted-foreground">Tap one top and one pair of trousers to build an outfit.</p>
                 </div>
@@ -287,18 +287,18 @@ function WardrobePage() {
             </section>
 
             {(top || trousers) && (
-              <div className={`${card} mt-6 p-5`}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
+              <div className={`${card} mt-6 p-4 sm:p-5`}>
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                  <div className="min-w-0">
                     <p className="font-display text-2xl font-bold">Your outfit</p>
                     <p className="text-sm text-muted-foreground">Choose one of each from your catalog. Tap it again to deselect it.</p>
                   </div>
-                  <Button type="button" variant="outline" onClick={() => { setSelectedTop(null); setSelectedTrousers(null); setOutfitPhoto(null); }} className={`${btn} h-auto bg-card`}><X aria-hidden="true" />Clear outfit</Button>
+                  <Button type="button" variant="outline" onClick={() => { setSelectedTop(null); setSelectedTrousers(null); setOutfitPhoto(null); }} className={`${btn} h-auto w-full bg-card sm:w-auto`}><X aria-hidden="true" />Clear outfit</Button>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {([top, trousers] as const).map((item, index) => (
-                    <div key={item?.id ?? (index === 0 ? "empty-top" : "empty-trousers")} className="flex min-h-24 items-center gap-3 rounded-xl border-2 border-ink bg-background p-3">
-                      {item ? <img src={item.url} alt={item.description} className="h-20 w-20 object-contain" /> : <div className="flex h-20 w-20 items-center justify-center border-2 border-dashed border-ink/30 text-2xl">{index === 0 ? "👕" : "👖"}</div>}
+                    <div key={item?.id ?? (index === 0 ? "empty-top" : "empty-trousers")} className="grid min-h-24 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-xl border-2 border-ink bg-background p-3 sm:grid-cols-[5rem_minmax(0,1fr)]">
+                      {item ? <img src={item.url} alt={item.description} className="h-18 w-18 object-contain sm:h-20 sm:w-20" /> : <div className="flex h-18 w-18 items-center justify-center border-2 border-dashed border-ink/30 text-2xl sm:h-20 sm:w-20">{index === 0 ? "👕" : "👖"}</div>}
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold uppercase text-muted-foreground">{index === 0 ? "Top" : "Trousers"}</p>
                          <p className="truncate font-display text-lg font-bold capitalize">{item?.description ?? "Pick from your catalog"}</p>
@@ -307,8 +307,8 @@ function WardrobePage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-5 flex flex-wrap items-center gap-3 border-t-2 border-ink pt-5">
-                  <Button type="button" disabled={makingOutfit} onClick={() => void makeOutfitPhoto()} className={`${btn} h-auto bg-blue text-primary-foreground`}>
+                <div className="mt-5 grid gap-3 border-t-2 border-ink pt-5 sm:flex sm:flex-wrap sm:items-center">
+                  <Button type="button" disabled={makingOutfit} onClick={() => void makeOutfitPhoto()} className={`${btn} h-auto w-full whitespace-normal bg-blue text-center text-primary-foreground sm:w-auto sm:whitespace-nowrap`}>
                     <Sparkles aria-hidden="true" />{makingOutfit ? "Creating your outfit photo…" : outfitPhotoFinal ? "Create another photo" : "Create outfit photo"}
                   </Button>
                   <p className="max-w-lg text-xs text-muted-foreground">AI creates a new fashion photo using your selected clothes as references. Small details may vary.</p>
