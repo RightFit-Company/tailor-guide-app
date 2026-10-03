@@ -279,9 +279,14 @@ export default function FitChecker() {
       waist: sizeEntry.waist,
       hips: sizeEntry.hips,
     };
-    return computeFit(garmentType, "cm", bodyCm, garmentCm, false);
+    const sizeIndex = sizes.findIndex((s) => s.label === sizeEntry.label);
+    const lengthInfo =
+      garmentType === "trousers" && legCm != null && sizeIndex >= 0
+        ? { legCm, inseamCm: typicalInseamCm(gender, sizeIndex) }
+        : undefined;
+    return computeFit(garmentType, "cm", bodyCm, garmentCm, false, lengthInfo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, garmentType, body, sizeEntry, bodyType, cup]);
+  }, [step, garmentType, body, sizeEntry, bodyType, cup, legCm, gender, sizes]);
 
   const meta = result ? VERDICT_META[result.verdict] : null;
   const markerPos = result ? Math.min(97, Math.max(3, Math.round(result.tightness * 100))) : 50;
@@ -291,6 +296,7 @@ export default function FitChecker() {
     Waist: body.waist.unit,
     Hips: body.hips.unit,
   };
+  const legUnit = legMode === "auto" ? body.height.unit : body.leg.unit;
 
   const checkAnother = () => {
     setSizeLabel("");
