@@ -18,18 +18,21 @@ import {
   type FitResult,
   type GarmentType,
   type Unit,
+  estimateInseamCm,
+  LENGTH_META,
 } from "@/lib/fit";
-import { BRANDS, getSizeEntry, type Gender } from "@/lib/brands";
+import { BRANDS, getSizeEntry, typicalInseamCm, type Gender } from "@/lib/brands";
 
 const STORAGE_KEY = "rightfit.body.v1";
 
 type FieldValue = { value: string; unit: Unit };
-type Values = { chest: FieldValue; waist: FieldValue; hips: FieldValue; height: FieldValue };
+type Values = { chest: FieldValue; waist: FieldValue; hips: FieldValue; height: FieldValue; leg: FieldValue };
 const EMPTY: Values = {
   chest: { value: "", unit: "cm" },
   waist: { value: "", unit: "cm" },
   hips: { value: "", unit: "cm" },
   height: { value: "", unit: "cm" },
+  leg: { value: "", unit: "cm" },
 };
 
 const BODY_FIELDS: { key: keyof Values; label: string; hint: string }[] = [
