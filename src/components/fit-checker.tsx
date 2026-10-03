@@ -11,6 +11,10 @@ import {
   fmt,
   toCm,
   type BodyCm,
+  type BodyType,
+  type CupSize,
+  CUP_SIZES,
+  adjustBodyForCup,
   type FitResult,
   type GarmentType,
   type Unit,
@@ -182,6 +186,29 @@ export default function FitChecker() {
   const [brandId, setBrandId] = useState(BRANDS[0]!.id);
   const [sizeLabel, setSizeLabel] = useState<string>("");
   const [mode, setMode] = useState<"check" | "find">("check");
+  const [bodyType, setBodyType] = useState<BodyType>("woman");
+  const [cup, setCup] = useState<CupSize | "">("");
+
+  useEffect(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { bodyType?: BodyType; cup?: CupSize | "" };
+      if (p.bodyType) {
+        setBodyType(p.bodyType);
+        setGender(p.bodyType === "man" ? "mens" : "womens");
+      }
+      if (p.cup) setCup(p.cup);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("rightfit.profile.v1", JSON.stringify({ bodyType, cup }));
+    } catch {
+      // ignore
+    }
+  }, [bodyType, cup]);
 
   useEffect(() => {
     try {
@@ -213,14 +240,15 @@ export default function FitChecker() {
   const sizes = brand.charts[gender][garmentType];
   const sizeEntry = sizeLabel ? getSizeEntry(brandId, gender, garmentType, sizeLabel) : undefined;
 
-  const bodyParsed = parseValues(body);
-  const bodyReady = bodyParsed.chest != null && bodyParsed.waist != null;
+  const bodyRaw = parseValues(body);
+  const bodyParsed = adjustBodyForCup(bodyRaw, garmentType, bodyType, cup);
+  const bodyReady = bodyRaw.chest != null && bodyParsed.waist != null;
   const hipsMissing = garmentType === "trousers" && bodyParsed.hips == null;
   const garmentReady = sizeEntry != null;
   const recommendation = useMemo(
     () => recommendSize(garmentType, bodyParsed, sizes),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [garmentType, body, sizes],
+    [garmentType, body, sizes, bodyType, cup],
   );
 
   const result: FitResult | null = useMemo(() => {
@@ -234,7 +262,7 @@ export default function FitChecker() {
     };
     return computeFit(garmentType, "cm", bodyCm, garmentCm, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, garmentType, body, sizeEntry]);
+  }, [step, garmentType, body, sizeEntry, bodyType, cup]);
 
   const meta = result ? VERDICT_META[result.verdict] : null;
   const markerPos = result ? Math.min(97, Math.max(3, Math.round(result.tightness * 100))) : 50;
@@ -268,6 +296,50 @@ export default function FitChecker() {
           <p className="mt-1 text-sm font-medium text-ink/60">
             Grab a soft tape measure. These are saved on your device so you only do this once.
           </p>
+          <div className="mt-5 flex flex-wrap items-end gap-5">
+            <div>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">
+                Are you a…
+              </p>
+              <ToggleGroup<BodyType>
+                options={[
+                  { value: "woman", label: "Woman" },
+                  { value: "man", label: "Man" },
+                ]}
+                value={bodyType}
+                onChange={(t) => {
+                  setBodyType(t);
+                  setGender(t === "man" ? "mens" : "womens");
+                  setSizeLabel("");
+                }}
+              />
+            </div>
+            {bodyType === "woman" && (
+              <div>
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">
+                  Cup size (for tops)
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {CUP_SIZES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-pressed={cup === c}
+                      onClick={() => setCup(cup === c ? "" : c)}
+                      className={`min-w-10 rounded-xl border-2 border-ink px-2.5 py-1.5 font-display text-sm font-bold transition-all ${cup === c ? "bg-ink text-paper shadow-none" : "bg-white shadow-hard-xs hover:bg-sun/40"}`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          {bodyType === "woman" && (
+            <p className="mt-2 text-xs font-medium text-ink/55">
+              Fuller cups need more room at the bust, so we add a little extra when checking tops.
+            </p>
+          )}
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {BODY_FIELDS.map((f) => (
               <NumberField
