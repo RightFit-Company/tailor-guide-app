@@ -73,26 +73,42 @@ function parseValues(values: Values): BodyCm {
   return { chest: cm(values.chest), waist: cm(values.waist), hips: cm(values.hips) };
 }
 
+const STEPS = ["Your body", "The garment", "Verdict"] as const;
+
 function NumberField({
   label,
   hint,
   unit,
   value,
   onChange,
+  onUnitChange,
 }: {
   label: string;
   hint: string;
   unit: Unit;
   value: string;
   onChange: (v: string) => void;
+  onUnitChange: (u: Unit) => void;
 }) {
   return (
     <div className="rounded-2xl border-2 border-ink bg-paper/60 p-4">
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <label className="font-display text-lg font-semibold">{label}</label>
-        <span className="text-[11px] font-bold uppercase tracking-wider text-ink/45">
-          {unit}
-        </span>
+        <div className="flex rounded-full border-2 border-ink bg-paper p-0.5">
+          {(["cm", "in"] as Unit[]).map((u) => (
+            <button
+              key={u}
+              type="button"
+              onClick={() => onUnitChange(u)}
+              aria-label={`${label} in ${u === "cm" ? "centimetres" : "inches"}`}
+              className={`rounded-full px-2.5 py-0.5 font-display text-[11px] font-bold uppercase transition-colors ${
+                unit === u ? "bg-ink text-white" : "text-ink/55 hover:text-ink"
+              }`}
+            >
+              {u}
+            </button>
+          ))}
+        </div>
       </div>
       <input
         type="number"
@@ -158,7 +174,6 @@ function ToggleGroup<T extends string>({
 }
 
 export default function FitChecker() {
-  const [unit, setUnit] = useState<Unit>("cm");
   const [step, setStep] = useState(1);
   const [body, setBody] = useState<Values>(EMPTY);
   const [gender, setGender] = useState<Gender>("womens");
@@ -169,7 +184,15 @@ export default function FitChecker() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setBody({ ...EMPTY, ...(JSON.parse(saved) as Partial<Values>) });
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<Record<keyof Values, unknown>>;
+        setBody({
+          chest: normalizeField(parsed.chest),
+          waist: normalizeField(parsed.waist),
+          hips: normalizeField(parsed.hips),
+          height: normalizeField(parsed.height),
+        });
+      }
     } catch {
       // ignore unreadable storage
     }
@@ -183,17 +206,6 @@ export default function FitChecker() {
     }
   }, [body]);
 
-  const switchUnit = (next: Unit) => {
-    if (next === unit) return;
-    const convert = (s: string) => {
-      const n = Number(s);
-      if (!s.trim() || !Number.isFinite(n)) return s;
-      const v = next === "in" ? n / CM_PER_IN : n * CM_PER_IN;
-      return String(Math.round(v * 10) / 10);
-    };
-    setBody((b) => ({ chest: convert(b.chest), waist: convert(b.waist), hips: convert(b.hips) }));
-    setUnit(next);
-  };
 
   const brand = BRANDS.find((b) => b.id === brandId) ?? BRANDS[0]!;
   const sizes = brand.charts[gender][garmentType];
