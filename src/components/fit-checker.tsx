@@ -18,18 +18,21 @@ import {
   type FitResult,
   type GarmentType,
   type Unit,
+  estimateInseamCm,
+  LENGTH_META,
 } from "@/lib/fit";
-import { BRANDS, getSizeEntry, type Gender } from "@/lib/brands";
+import { BRANDS, getSizeEntry, typicalInseamCm, type Gender } from "@/lib/brands";
 
 const STORAGE_KEY = "rightfit.body.v1";
 
 type FieldValue = { value: string; unit: Unit };
-type Values = { chest: FieldValue; waist: FieldValue; hips: FieldValue; height: FieldValue };
+type Values = { chest: FieldValue; waist: FieldValue; hips: FieldValue; height: FieldValue; leg: FieldValue };
 const EMPTY: Values = {
   chest: { value: "", unit: "cm" },
   waist: { value: "", unit: "cm" },
   hips: { value: "", unit: "cm" },
   height: { value: "", unit: "cm" },
+  leg: { value: "", unit: "cm" },
 };
 
 const BODY_FIELDS: { key: keyof Values; label: string; hint: string }[] = [
@@ -68,14 +71,20 @@ function normalizeField(raw: unknown): FieldValue {
   return { value: "", unit: "cm" };
 }
 
-function parseValues(values: Values): BodyCm {
+function parseValues(values: Values): BodyCm & { height?: number | undefined } {
   const cm = (f: FieldValue) => {
     const trimmed = f.value.trim();
     if (!trimmed) return undefined;
     const n = Number(trimmed);
     return Number.isFinite(n) && n > 0 ? toCm(n, f.unit) : undefined;
   };
-  return { chest: cm(values.chest), waist: cm(values.waist), hips: cm(values.hips) };
+  return {
+    chest: cm(values.chest),
+    waist: cm(values.waist),
+    hips: cm(values.hips),
+    height: cm(values.height),
+    inseam: cm(values.leg),
+  };
 }
 
 const STEPS = ["Your body", "The garment", "Verdict"] as const;
@@ -188,15 +197,21 @@ export default function FitChecker() {
   const [mode, setMode] = useState<"check" | "find">("check");
   const [bodyType, setBodyType] = useState<BodyType>("woman");
   const [cup, setCup] = useState<CupSize | "">("");
+  const [legMode, setLegMode] = useState<"auto" | "manual">("auto");
 
   useEffect(() => {
     try {
-      const p = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { bodyType?: BodyType; cup?: CupSize | "" };
+      const p = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as {
+        bodyType?: BodyType;
+        cup?: CupSize | "";
+        legMode?: "auto" | "manual";
+      };
       if (p.bodyType) {
         setBodyType(p.bodyType);
         setGender(p.bodyType === "man" ? "mens" : "womens");
       }
       if (p.cup) setCup(p.cup);
+      if (p.legMode) setLegMode(p.legMode);
     } catch {
       // ignore
     }
@@ -204,11 +219,11 @@ export default function FitChecker() {
 
   useEffect(() => {
     try {
-      localStorage.setItem("rightfit.profile.v1", JSON.stringify({ bodyType, cup }));
+      localStorage.setItem("rightfit.profile.v1", JSON.stringify({ bodyType, cup, legMode }));
     } catch {
       // ignore
     }
-  }, [bodyType, cup]);
+  }, [bodyType, cup, legMode]);
 
   useEffect(() => {
     try {
@@ -220,6 +235,7 @@ export default function FitChecker() {
           waist: normalizeField(parsed.waist),
           hips: normalizeField(parsed.hips),
           height: normalizeField(parsed.height),
+          leg: normalizeField(parsed.leg),
         });
       }
     } catch {
@@ -242,6 +258,9 @@ export default function FitChecker() {
 
   const bodyRaw = parseValues(body);
   const bodyParsed = adjustBodyForCup(bodyRaw, garmentType, bodyType, cup);
+  // Leg length: auto-estimated from height unless the user measured it themselves.
+  const autoLegCm = bodyRaw.height != null ? estimateInseamCm(bodyRaw.height) : undefined;
+  const legCm = legMode === "auto" ? autoLegCm : bodyRaw.inseam;
   const bodyReady = bodyRaw.chest != null && bodyParsed.waist != null;
   const hipsMissing = garmentType === "trousers" && bodyParsed.hips == null;
   const garmentReady = sizeEntry != null;
@@ -260,9 +279,14 @@ export default function FitChecker() {
       waist: sizeEntry.waist,
       hips: sizeEntry.hips,
     };
-    return computeFit(garmentType, "cm", bodyCm, garmentCm, false);
+    const sizeIndex = sizes.findIndex((s) => s.label === sizeEntry.label);
+    const lengthInfo =
+      garmentType === "trousers" && legCm != null && sizeIndex >= 0
+        ? { legCm, inseamCm: typicalInseamCm(gender, sizeIndex) }
+        : undefined;
+    return computeFit(garmentType, "cm", bodyCm, garmentCm, false, lengthInfo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, garmentType, body, sizeEntry, bodyType, cup]);
+  }, [step, garmentType, body, sizeEntry, bodyType, cup, legCm, gender, sizes]);
 
   const meta = result ? VERDICT_META[result.verdict] : null;
   const markerPos = result ? Math.min(97, Math.max(3, Math.round(result.tightness * 100))) : 50;
@@ -272,6 +296,7 @@ export default function FitChecker() {
     Waist: body.waist.unit,
     Hips: body.hips.unit,
   };
+  const legUnit = legMode === "auto" ? body.height.unit : body.leg.unit;
 
   const checkAnother = () => {
     setSizeLabel("");
@@ -353,6 +378,86 @@ export default function FitChecker() {
               />
             ))}
           </div>
+
+          {/* Leg length — auto-estimated from height by default */}
+          <div className="mt-3 rounded-2xl border-2 border-ink bg-paper/60 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-display text-lg font-semibold">Leg length (inside leg)</p>
+                <p className="mt-0.5 text-xs font-medium text-ink/60">
+                  Crotch to ankle — used to check trouser length.
+                </p>
+              </div>
+              <div className="flex rounded-full border-2 border-ink bg-paper p-0.5">
+                {(
+                  [
+                    { value: "auto", label: "Auto from height" },
+                    { value: "manual", label: "Measure it" },
+                  ] as const
+                ).map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => setLegMode(o.value)}
+                    aria-pressed={legMode === o.value}
+                    className={`rounded-full px-3 py-1 font-display text-[11px] font-bold uppercase transition-colors ${
+                      legMode === o.value ? "bg-ink text-white" : "text-ink/55 hover:text-ink"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {legMode === "auto" ? (
+              <p className="mt-3 text-sm font-bold text-ink/70">
+                {autoLegCm != null ? (
+                  <>
+                    Estimated inside leg: {fmt(autoLegCm, body.height.unit)} {body.height.unit}
+                    <span className="ml-2 font-medium text-ink/50">
+                      (rough guess from your height — switch to “Measure it” for accuracy)
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-medium text-ink/50">
+                    Add your height above and we'll estimate your inside leg from it.
+                  </span>
+                )}
+              </p>
+            ) : (
+              <div className="mt-3 max-w-xs">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={1}
+                    max={200}
+                    step="0.5"
+                    placeholder="—"
+                    value={body.leg.value}
+                    onChange={(e) => setBody((b) => ({ ...b, leg: { ...b.leg, value: e.target.value } }))}
+                    className="w-full rounded-2xl border-2 border-ink bg-white px-4 py-2.5 font-display text-2xl font-semibold shadow-hard-xs outline-none placeholder:text-ink/25 focus:-translate-y-0.5 focus:shadow-hard-sm"
+                  />
+                  <div className="flex rounded-full border-2 border-ink bg-paper p-0.5">
+                    {(["cm", "in"] as Unit[]).map((u) => (
+                      <button
+                        key={u}
+                        type="button"
+                        onClick={() => setBody((b) => ({ ...b, leg: { ...b.leg, unit: u } }))}
+                        aria-label={`Leg length in ${u === "cm" ? "centimetres" : "inches"}`}
+                        className={`rounded-full px-2.5 py-0.5 font-display text-[11px] font-bold uppercase transition-colors ${
+                          body.leg.unit === u ? "bg-ink text-white" : "text-ink/55 hover:text-ink"
+                        }`}
+                      >
+                        {u}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="mt-6 flex items-center justify-end gap-3">
             {!bodyReady && (
               <span className="text-xs font-bold text-ink/50">Chest and waist are needed</span>
@@ -612,6 +717,28 @@ export default function FitChecker() {
               );
             })}
           </div>
+
+          {/* Trouser length verdict */}
+          {result.length && (
+            <div className="mt-3 rounded-2xl border-2 border-ink bg-paper/60 p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="font-display text-base font-bold">Length</span>
+                <span
+                  className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-[11px] font-bold ${LENGTH_META[result.length.verdict].chip}`}
+                >
+                  {LENGTH_META[result.length.verdict].label}
+                </span>
+              </div>
+              <p className="mt-1 text-xs font-bold text-ink/60">
+                Your inside leg {fmt(result.length.legCm, legUnit)} → typical inseam{" "}
+                {fmt(result.length.inseamCm, legUnit)} {legUnit}
+                {legMode === "auto" ? " (estimated from your height)" : ""}
+              </p>
+              <p className="mt-1 text-xs font-medium text-ink/60">
+                {LENGTH_META[result.length.verdict].tagline}
+              </p>
+            </div>
+          )}
 
           <p className="mt-4 text-xs font-medium text-ink/50">
             Based on {brand.name}'s typical {gender} {garmentType} measurements for size{" "}

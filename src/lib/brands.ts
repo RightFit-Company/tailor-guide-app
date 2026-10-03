@@ -17,6 +17,16 @@ export interface Brand {
 }
 
 /**
+ * Typical inside-leg (cm) for a trouser size at position `index` in a chart.
+ * Charts don't carry inseams, so we use standard high-street defaults:
+ * womens regular ≈ 74 cm, mens regular ≈ 79 cm, growing slightly with size.
+ */
+export function typicalInseamCm(gender: Gender, sizeIndex: number): number {
+  const base = gender === "mens" ? 79 : 74;
+  return base + Math.max(0, sizeIndex);
+}
+
+/**
  * Approximate garment measurements per brand, gender and size.
  * Values are typical finished garment circumferences (cm), based on each
  * brand's published size guide plus standard wearing ease. High-street
