@@ -176,3 +176,19 @@ export function recommendSize<S extends BodyCm>(
   });
   return { options, bestIndex };
 }
+
+export type BodyType = "woman" | "man";
+export const CUP_SIZES = ["AA", "A", "B", "C", "D", "DD", "E", "F", "G", "H"] as const;
+export type CupSize = (typeof CUP_SIZES)[number];
+
+/** Extra bust room (cm) a top needs for a given cup — fuller cups need more ease at the chest. */
+export function cupAllowanceCm(cup: CupSize | ""): number {
+  const i = cup ? CUP_SIZES.indexOf(cup) : -1;
+  return i <= 1 ? 0 : i - 1; // AA/A 0, B 1, C 2 ... H 8
+}
+
+/** Body used for a fit check: for women's tops the chest is bumped by the cup allowance. */
+export function adjustBodyForCup(body: BodyCm, garment: GarmentType, bodyType: BodyType, cup: CupSize | ""): BodyCm {
+  if (garment !== "top" || bodyType !== "woman" || body.chest == null) return body;
+  return { ...body, chest: body.chest + cupAllowanceCm(cup) };
+}
