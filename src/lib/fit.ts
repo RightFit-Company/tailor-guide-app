@@ -125,6 +125,7 @@ export function computeFit(
   body: BodyCm,
   garmentMeasurements: BodyCm,
   flatAcross: boolean,
+  lengthInfo?: { legCm: number; inseamCm: number },
 ): FitResult | null {
   const rows: FitRow[] = [];
   for (const { key, label } of MEASURED_PAIRS[garment]) {
@@ -141,12 +142,23 @@ export function computeFit(
   const tightest = rows.reduce((a, b) => (b.easeCm < a.easeCm ? b : a));
   const tightness = Math.min(...rows.map((r) => r.bodyCm / r.garmentCm));
 
+  const length =
+    garment === "trousers" && lengthInfo
+      ? {
+          legCm: lengthInfo.legCm,
+          inseamCm: lengthInfo.inseamCm,
+          diffCm: lengthInfo.inseamCm - lengthInfo.legCm,
+          verdict: classifyLength(lengthInfo.inseamCm - lengthInfo.legCm),
+        }
+      : undefined;
+
   return {
     garment,
     verdict: tightest.verdict,
     tightestLabel: tightest.label,
     tightness,
     rows,
+    length,
   };
 }
 
