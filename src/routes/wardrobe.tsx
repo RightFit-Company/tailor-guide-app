@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { streamImage } from "@/lib/stream-image";
-import type { BodyCm } from "@/lib/fit";
+import type { BodyType, CupSize } from "@/lib/fit";
+import type { AvatarMeasurements } from "@/lib/avatar";
 
 const ClothesRail = lazy(() => import("@/components/clothes-rail"));
 const BodyViewer = lazy(() => import("@/components/body-viewer"));
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/wardrobe")({
 
 type Item = { id: string; kind: "top" | "trousers"; description: string; color: string; image_path: string; url: string };
 
-function loadBody(): BodyCm {
+function loadBody(): AvatarMeasurements {
   try {
     const raw = JSON.parse(localStorage.getItem("rightfit.body.v1") ?? "{}") as Record<string, { value?: string; unit?: string } | string>;
     const cm = (k: string) => {
@@ -36,9 +37,21 @@ function loadBody(): BodyCm {
       const n = parseFloat(v ?? "");
       return Number.isFinite(n) && n > 0 ? (unit === "in" ? n * 2.54 : n) : undefined;
     };
-    return { chest: cm("chest"), waist: cm("waist"), hips: cm("hips") };
+    const profile = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { legMode?: "auto" | "manual" };
+    const height = cm("height");
+    const manualLeg = cm("leg");
+    return { chest: cm("chest"), waist: cm("waist"), hips: cm("hips"), height, inseam: profile.legMode === "manual" ? manualLeg : height ? height * 0.45 : undefined };
   } catch {
     return {};
+  }
+}
+
+function loadProfile(): { bodyType: BodyType; cup: CupSize | "" } {
+  try {
+    const profile = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { bodyType?: BodyType; cup?: CupSize | "" };
+    return { bodyType: profile.bodyType === "man" ? "man" : "woman", cup: profile.cup ?? "" };
+  } catch {
+    return { bodyType: "woman", cup: "" };
   }
 }
 
@@ -115,11 +128,11 @@ function AuthCard() {
 function WardrobePage() {
   const { user, session, loading } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selectedTop, setSelectedTop] = useState<string | null>(null);
+  const [selectedTrousers, setSelectedTrousers] = useState<string | null>(null);
   const [stage, setStage] = useState<null | "reading" | "cutting" | "saving">(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tryOn, setTryOn] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
@@ -170,7 +183,8 @@ function WardrobePage() {
       const ins = await supabase.from("wardrobe_items").insert({ ...info, image_path: path }).select().single();
       if (ins.error) throw ins.error;
       await load();
-      setSelected(ins.data.id);
+      if (info.kind === "top") setSelectedTop(ins.data.id);
+      else setSelectedTrousers(ins.data.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -182,13 +196,22 @@ function WardrobePage() {
   async function remove(item: Item) {
     await supabase.storage.from("wardrobe").remove([item.image_path]);
     await supabase.from("wardrobe_items").delete().eq("id", item.id);
-    setSelected(null);
-    setTryOn(false);
+    if (item.kind === "top") setSelectedTop((id) => id === item.id ? null : id);
+    else setSelectedTrousers((id) => id === item.id ? null : id);
     await load();
   }
 
-  const sel = items.find((i) => i.id === selected) ?? null;
+  const top = items.find((item) => item.id === selectedTop) ?? null;
+  const trousers = items.find((item) => item.id === selectedTrousers) ?? null;
   const body = loadBody();
+  const profile = loadProfile();
+
+  function selectItem(id: string) {
+    const item = items.find((candidate) => candidate.id === id);
+    if (!item) return;
+    if (item.kind === "top") setSelectedTop((current) => current === id ? null : id);
+    else setSelectedTrousers((current) => current === id ? null : id);
+  }
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 text-foreground">
@@ -231,37 +254,48 @@ function WardrobePage() {
                 </div>
               ) : (
                 <Suspense fallback={<div className="p-6">Loading rail…</div>}>
-                  <ClothesRail items={items} selectedId={selected} onSelect={(id) => { setSelected(id); setTryOn(false); }} />
+                  <ClothesRail items={items} selectedIds={[selectedTop, selectedTrousers].filter((id): id is string => id != null)} onSelect={selectItem} />
                 </Suspense>
               )}
             </div>
-            {items.length > 0 && !sel && <p className="mt-3 text-sm text-muted-foreground">Tap an item on the rail to pick it. Drag to spin around.</p>}
+            {items.length > 0 && !top && !trousers && <p className="mt-3 text-sm text-muted-foreground">Tap a top and a pair of trousers to build an outfit. Drag the rail to spin around.</p>}
 
-            {sel && (
+            {(top || trousers) && (
               <div className={`${card} mt-6 p-5`}>
-                <div className="flex flex-wrap items-center gap-4">
-                  <img src={sel.url} alt={sel.description} className="h-20 w-20 object-contain" />
-                  <div className="flex-1">
-                    <p className="font-display text-xl font-bold capitalize">{sel.description}</p>
-                    <p className="text-sm text-muted-foreground">{sel.kind === "top" ? "Top" : "Trousers"}</p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-display text-2xl font-bold">Your outfit</p>
+                    <p className="text-sm text-muted-foreground">Choose one of each from the rail. Tap it again to take it off.</p>
                   </div>
-                  <button onClick={() => setTryOn((t) => !t)} className={`${btn} bg-mint text-primary-foreground`}>
-                    {tryOn ? "Hide try-on" : "Try it on"}
-                  </button>
-                  <button onClick={() => remove(sel)} className={`${btn} bg-card`}>Remove</button>
+                  <button onClick={() => { setSelectedTop(null); setSelectedTrousers(null); }} className={`${btn} bg-card`}>Clear outfit</button>
                 </div>
-                {tryOn && (
-                  <>
-                    {!body.chest && !body.waist && (
-                      <p className="mt-4 text-sm">Tip: enter your measurements on the fit checker first so the model matches your shape.</p>
-                    )}
-                    <div className="mt-4 h-[460px] overflow-hidden rounded-xl border-2 border-ink">
-                      <Suspense fallback={<div className="p-6">Loading model…</div>}>
-                        <BodyViewer body={body} garment={{}} type={sel.kind} color={sel.color} />
-                      </Suspense>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {([top, trousers] as const).map((item, index) => (
+                    <div key={item?.id ?? (index === 0 ? "empty-top" : "empty-trousers")} className="flex min-h-24 items-center gap-3 rounded-xl border-2 border-ink bg-background p-3">
+                      {item ? <img src={item.url} alt={item.description} className="h-20 w-20 object-contain" /> : <div className="flex h-20 w-20 items-center justify-center border-2 border-dashed border-ink/30 text-2xl">{index === 0 ? "👕" : "👖"}</div>}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold uppercase text-muted-foreground">{index === 0 ? "Top" : "Trousers"}</p>
+                        <p className="truncate font-display text-lg font-bold capitalize">{item?.description ?? "Pick from the rail"}</p>
+                        {item && <button type="button" onClick={() => void remove(item)} className="mt-1 text-xs font-bold underline">Remove from wardrobe</button>}
+                      </div>
                     </div>
-                  </>
+                  ))}
+                </div>
+                {!body.chest && !body.waist && (
+                  <p className="mt-4 rounded-xl bg-sun p-3 text-sm font-medium">Add your measurements on the fit checker so this figure matches your proportions.</p>
                 )}
+                <div className="mt-4 h-[560px] overflow-hidden rounded-xl border-2 border-ink sm:h-[640px]">
+                  <Suspense fallback={<div className="p-6">Loading your fitting room…</div>}>
+                    <BodyViewer
+                      body={body}
+                      bodyType={profile.bodyType}
+                      cup={profile.cup}
+                      top={top ? { url: top.url, color: top.color, description: top.description } : undefined}
+                      trousers={trousers ? { url: trousers.url, color: trousers.color, description: trousers.description } : undefined}
+                    />
+                  </Suspense>
+                </div>
+                <p className="mt-3 text-xs font-medium text-muted-foreground">Drag to turn your figure and pinch or scroll to zoom. This is a visual preview, not an exact fabric-drape simulation.</p>
               </div>
             )}
           </>

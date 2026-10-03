@@ -23,7 +23,7 @@ export interface ViewerGarment {
 export function colorFromDescription(desc: string, type: GarmentType): string {
   const d = desc.toLowerCase();
   const key = Object.keys(COLORS).find((name) => d.includes(name));
-  const base = key ? COLORS[key] : /jean|denim/.test(d) ? COLORS.denim : type === "top" ? "#e9e4da" : "#3a3d44";
+  const base = key ? COLORS[key] : /jean|denim/.test(d) ? COLORS["denim"] : type === "top" ? "#e9e4da" : "#3a3d44";
   const color = new THREE.Color(base);
   if (/\bdark\b|deep/.test(d)) color.multiplyScalar(0.55);
   if (/\blight\b|pale|pastel/.test(d)) color.lerp(new THREE.Color("#ffffff"), 0.4);
@@ -55,7 +55,8 @@ function CurvedPhoto({ url, width, height, y, z }: { url: string; width: number;
   texture.colorSpace = THREE.SRGBColorSpace;
   const geometry = useMemo(() => {
     const geo = new THREE.PlaneGeometry(width, height, 14, 10);
-    const position = geo.attributes.position;
+    const position = geo.attributes["position"];
+    if (!position) return geo;
     for (let i = 0; i < position.count; i += 1) {
       const x = position.getX(i) / (width / 2);
       position.setZ(i, -Math.pow(Math.abs(x), 2) * width * 0.11);

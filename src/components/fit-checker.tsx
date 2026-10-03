@@ -1,8 +1,5 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
-
-// 3D try-on viewer (src/components/body-viewer.tsx) — not yet wired into the verdict step.
-void Suspense;
-void lazy;
+import { Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import {
   VERDICT_META,
   computeFit,
@@ -470,6 +467,15 @@ export default function FitChecker() {
               Next: the garment →
             </button>
           </div>
+          <div className="mt-5 flex flex-col gap-3 rounded-2xl border-2 border-ink bg-sun p-4 shadow-hard-xs sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-display text-lg font-bold">See your measurements come to life</p>
+              <p className="text-sm font-medium text-ink/65">Scan your clothes, build outfits, and preview them on your own 3D figure.</p>
+            </div>
+            <Link to="/wardrobe" className="shrink-0 rounded-2xl border-2 border-ink bg-white px-4 py-2.5 text-center font-display font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
+              Open My Wardrobe →
+            </Link>
+          </div>
         </div>
       )}
 
@@ -744,6 +750,16 @@ export default function FitChecker() {
             Based on {brand.name}'s typical {gender} {garmentType} measurements for size{" "}
             {sizeLabel}. Brands vary season to season — when in doubt, try it on.
           </p>
+
+          <div className="mt-5 flex flex-col gap-3 rounded-2xl border-2 border-ink bg-sun p-4 shadow-hard-xs sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-display text-xl font-bold">Build the whole outfit</p>
+              <p className="text-sm font-medium text-ink/65">Put scanned tops and trousers together on your measurement-shaped 3D figure.</p>
+            </div>
+            <Link to="/wardrobe" className="shrink-0 rounded-2xl border-2 border-ink bg-white px-5 py-3 text-center font-display font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
+              Try My Wardrobe →
+            </Link>
+          </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
             <button
