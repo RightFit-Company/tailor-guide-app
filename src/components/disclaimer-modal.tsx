@@ -20,8 +20,8 @@ export function DisclaimerModal() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-ink/50 px-4 py-8">
-      <div className="w-full max-w-md rotate-[-0.5deg] rounded-3xl border-2 border-ink bg-white p-6 shadow-hard-lg sm:p-8">
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/50 px-3 py-4 sm:px-4 sm:py-8">
+      <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border-2 border-ink bg-white p-4 shadow-hard-sm sm:max-h-none sm:rotate-[-0.5deg] sm:rounded-3xl sm:p-8 sm:shadow-hard-lg">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="grid size-11 place-items-center rounded-2xl border-2 border-ink bg-brand font-display text-2xl font-bold text-white shadow-hard-sm">
@@ -34,7 +34,7 @@ export function DisclaimerModal() {
           </span>
         </div>
 
-        <div className="mt-6 rounded-2xl border-2 border-ink bg-paper p-4">
+        <div className="mt-5 rounded-2xl border-2 border-ink bg-paper p-3 sm:mt-6 sm:p-4">
           <p className="text-center font-display text-base font-semibold leading-relaxed">
             © 2026 Peter Richard Smith
             <br />
@@ -59,7 +59,7 @@ export function DisclaimerModal() {
 
         <button
           onClick={() => setOpen(false)}
-          className="mt-6 w-full rounded-full border-2 border-ink bg-brand px-8 py-4 font-display text-lg font-bold text-white shadow-hard transition-all hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-hard-xs"
+          className="mt-5 min-h-12 w-full rounded-full border-2 border-ink bg-brand px-6 py-3 font-display text-base font-bold text-white shadow-hard-sm transition-all hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-hard-xs sm:mt-6 sm:px-8 sm:py-4 sm:text-lg sm:shadow-hard"
         >
           Got it
         </button>
