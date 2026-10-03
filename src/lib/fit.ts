@@ -77,6 +77,8 @@ export interface FitResult {
   tightestLabel: string;
   tightness: number; // 0..1, body as a share of garment at the tightest point
   rows: FitRow[];
+  /** Trousers only: how the leg length compares to the garment's typical inseam. */
+  length?: { legCm: number; inseamCm: number; diffCm: number; verdict: LengthVerdict } | undefined;
 }
 
 const MEASURED_PAIRS: Record<GarmentType, { key: "chest" | "waist" | "hips"; label: string }[]> = {
@@ -94,7 +96,28 @@ export interface BodyCm {
   chest?: number | undefined;
   waist?: number | undefined;
   hips?: number | undefined;
+  inseam?: number | undefined;
 }
+
+/** Rough inside-leg estimate from overall height (≈45%). */
+export function estimateInseamCm(heightCm: number): number {
+  return Math.round(heightCm * 0.45);
+}
+
+export type LengthVerdict = "short" | "right" | "long";
+
+/** diffCm = garment inseam − leg length. */
+export function classifyLength(diffCm: number): LengthVerdict {
+  if (diffCm < -2.5) return "short";
+  if (diffCm > 2.5) return "long";
+  return "right";
+}
+
+export const LENGTH_META: Record<LengthVerdict, { label: string; tagline: string; chip: string }> = {
+  short: { label: "Too short", tagline: "These will likely sit above your ankle.", chip: "bg-sun text-ink" },
+  right: { label: "Good length", tagline: "Should break nicely at your ankle.", chip: "bg-mint text-ink" },
+  long: { label: "Too long", tagline: "Expect bunching or a trip to the tailor.", chip: "bg-brand text-white" },
+};
 
 export function computeFit(
   garment: GarmentType,
