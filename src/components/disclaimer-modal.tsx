@@ -39,7 +39,7 @@ export function DisclaimerModal() {
           <p className="text-center font-display text-base font-semibold leading-relaxed">
             © 2026 Peter Richard Smith
             <br />
-            All Rights Served.
+            All rights reserved.
           </p>
         </div>
 
