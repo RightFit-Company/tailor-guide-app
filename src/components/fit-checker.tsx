@@ -102,7 +102,7 @@ function NumberField({
   onUnitChange: (u: Unit) => void;
 }) {
   return (
-    <div className="rounded-2xl border-2 border-ink bg-paper/60 p-4">
+    <div className="rounded-xl border-2 border-ink bg-paper/60 p-3.5 sm:rounded-2xl sm:p-4">
       <div className="flex items-center justify-between gap-3">
         <label className="font-display text-lg font-semibold">{label}</label>
         <div className="flex rounded-full border-2 border-ink bg-paper p-0.5">
@@ -130,7 +130,7 @@ function NumberField({
         placeholder="—"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-2 w-full rounded-2xl border-2 border-ink bg-white px-4 py-2.5 font-display text-2xl font-semibold shadow-hard-xs outline-none placeholder:text-ink/25 focus:-translate-y-0.5 focus:shadow-hard-sm"
+        className="mt-2 min-h-12 w-full rounded-xl border-2 border-ink bg-white px-3.5 py-2 font-display text-2xl font-semibold shadow-hard-xs outline-none placeholder:text-ink/25 focus:-translate-y-0.5 focus:shadow-hard-sm sm:rounded-2xl sm:px-4 sm:py-2.5"
       />
       <p className="mt-2 text-xs font-medium leading-snug text-ink/60">{hint}</p>
     </div>
@@ -140,7 +140,7 @@ function NumberField({
 function StepChip({ index, label, state }: { index: number; label: string; state: "active" | "done" | "todo" }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border-2 border-ink px-3 py-1 text-xs font-bold ${
+      className={`inline-flex min-w-0 items-center gap-1.5 rounded-full border-2 border-ink px-2 py-1 text-[11px] font-bold sm:gap-2 sm:px-3 sm:text-xs ${
         state === "active"
           ? "bg-brand text-white shadow-hard-xs"
           : state === "done"
@@ -148,7 +148,7 @@ function StepChip({ index, label, state }: { index: number; label: string; state
             : "bg-white text-ink/50"
       }`}
     >
-      <span className="grid size-5 place-items-center rounded-full bg-ink font-display text-[10px] text-white">
+      <span className="grid size-5 shrink-0 place-items-center rounded-full bg-ink font-display text-[10px] text-white">
         {state === "done" ? "✓" : index}
       </span>
       {label}
@@ -301,9 +301,9 @@ export default function FitChecker() {
   };
 
   return (
-    <div className="rounded-[2rem] border-2 border-ink bg-white p-5 shadow-hard-lg sm:p-8">
+    <div className="rounded-2xl border-2 border-ink bg-white p-4 shadow-hard-sm sm:rounded-[2rem] sm:p-8 sm:shadow-hard-lg">
       {/* Step chips */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:items-center sm:gap-2">
         {STEPS.map((label, i) => {
           const n = i + 1;
           const state = n === step ? "active" : n < step ? "done" : "todo";
@@ -313,13 +313,13 @@ export default function FitChecker() {
 
       {/* STEP 1 — body */}
       {step === 1 && (
-        <div className="mt-6">
+        <div className="mt-5 sm:mt-6">
           <h3 className="font-display text-2xl font-bold sm:text-3xl">Measure your body</h3>
           <p className="mt-1 text-sm font-medium text-ink/60">
             Grab a soft tape measure. These are saved on your device so you only do this once.
           </p>
-          <div className="mt-5 flex flex-wrap items-end gap-5">
-            <div>
+          <div className="mt-5 grid gap-4 sm:flex sm:flex-wrap sm:items-end sm:gap-5">
+            <div className="min-w-0">
               <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">
                 Are you a…
               </p>
@@ -337,18 +337,18 @@ export default function FitChecker() {
               />
             </div>
             {bodyType === "woman" && (
-              <div>
+              <div className="min-w-0">
                 <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">
                   Cup size (for tops)
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap">
                   {CUP_SIZES.map((c) => (
                     <button
                       key={c}
                       type="button"
                       aria-pressed={cup === c}
                       onClick={() => setCup(cup === c ? "" : c)}
-                      className={`min-w-10 rounded-xl border-2 border-ink px-2.5 py-1.5 font-display text-sm font-bold transition-all ${cup === c ? "bg-ink text-paper shadow-none" : "bg-white shadow-hard-xs hover:bg-sun/40"}`}
+                      className={`min-h-10 min-w-0 rounded-xl border-2 border-ink px-2 py-1.5 font-display text-sm font-bold transition-all sm:min-w-10 sm:px-2.5 ${cup === c ? "bg-ink text-paper shadow-none" : "bg-white shadow-hard-xs hover:bg-sun/40"}`}
                     >
                       {c}
                     </button>
@@ -377,15 +377,15 @@ export default function FitChecker() {
           </div>
 
           {/* Leg length — auto-estimated from height by default */}
-          <div className="mt-3 rounded-2xl border-2 border-ink bg-paper/60 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="mt-3 rounded-xl border-2 border-ink bg-paper/60 p-3.5 sm:rounded-2xl sm:p-4">
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
               <div>
                 <p className="font-display text-lg font-semibold">Leg length (inside leg)</p>
                 <p className="mt-0.5 text-xs font-medium text-ink/60">
                   Crotch to ankle — used to check trouser length.
                 </p>
               </div>
-              <div className="flex rounded-full border-2 border-ink bg-paper p-0.5">
+              <div className="grid grid-cols-2 rounded-xl border-2 border-ink bg-paper p-0.5 sm:flex sm:rounded-full">
                 {(
                   [
                     { value: "auto", label: "Auto from height" },
@@ -397,7 +397,7 @@ export default function FitChecker() {
                     type="button"
                     onClick={() => setLegMode(o.value)}
                     aria-pressed={legMode === o.value}
-                    className={`rounded-full px-3 py-1 font-display text-[11px] font-bold uppercase transition-colors ${
+                    className={`min-h-9 rounded-lg px-2 py-1 font-display text-[10px] font-bold uppercase transition-colors sm:min-h-0 sm:rounded-full sm:px-3 sm:text-[11px] ${
                       legMode === o.value ? "bg-ink text-white" : "text-ink/55 hover:text-ink"
                     }`}
                   >
@@ -455,14 +455,14 @@ export default function FitChecker() {
             )}
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3">
+          <div className="mt-6 grid gap-2 sm:flex sm:items-center sm:justify-end sm:gap-3">
             {!bodyReady && (
-              <span className="text-xs font-bold text-ink/50">Chest and waist are needed</span>
+              <span className="text-center text-xs font-bold text-ink/50 sm:text-left">Chest and waist are needed</span>
             )}
             <button
               disabled={!bodyReady}
               onClick={() => setStep(2)}
-              className="rounded-2xl border-2 border-ink bg-brand px-6 py-3 font-display text-lg font-bold text-white shadow-hard transition-all enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px] enabled:hover:shadow-hard-xs disabled:opacity-40"
+              className="min-h-12 w-full rounded-xl border-2 border-ink bg-brand px-5 py-3 font-display text-base font-bold text-white shadow-hard-sm transition-all enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px] enabled:hover:shadow-hard-xs disabled:opacity-40 sm:w-auto sm:rounded-2xl sm:px-6 sm:text-lg sm:shadow-hard"
             >
               Next: the garment →
             </button>
@@ -481,7 +481,7 @@ export default function FitChecker() {
 
       {/* STEP 2 — garment */}
       {step === 2 && (
-        <div className="mt-6">
+        <div className="mt-5 sm:mt-6">
           <h3 className="font-display text-2xl font-bold sm:text-3xl">Pick the garment</h3>
           <p className="mt-1 text-sm font-medium text-ink/60">
             Tell us who it's for, the brand and the size on the label — we'll look up how that size
@@ -626,14 +626,14 @@ export default function FitChecker() {
             </div>
           )}
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
             <button
               onClick={() => setStep(1)}
-              className="rounded-2xl border-2 border-ink bg-white px-5 py-3 font-display font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              className="min-h-12 w-full rounded-xl border-2 border-ink bg-white px-5 py-3 font-display font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:w-auto sm:rounded-2xl"
             >
               ← Body
             </button>
-            <div className="flex items-center gap-3">
+            <div className="grid gap-2 sm:flex sm:items-center sm:gap-3">
               {hipsMissing && (
                 <span className="text-xs font-bold text-ink/50">
                   Trousers need your hip measurement too
@@ -645,7 +645,7 @@ export default function FitChecker() {
               <button
                 disabled={!garmentReady || hipsMissing}
                 onClick={() => setStep(3)}
-                className="rounded-2xl border-2 border-ink bg-brand px-6 py-3 font-display text-lg font-bold text-white shadow-hard transition-all enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px] enabled:hover:shadow-hard-xs disabled:opacity-40"
+                className="min-h-12 w-full rounded-xl border-2 border-ink bg-brand px-6 py-3 font-display text-base font-bold text-white shadow-hard-sm transition-all enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px] enabled:hover:shadow-hard-xs disabled:opacity-40 sm:w-auto sm:rounded-2xl sm:text-lg sm:shadow-hard"
               >
                 See my fit →
               </button>
@@ -657,19 +657,19 @@ export default function FitChecker() {
       {/* STEP 3 — verdict */}
       {step === 3 && result && meta && (
         <div className="mt-6">
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
             <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink/50">
               Fit report
             </span>
             <span
-              className={`rounded-full border-2 border-ink px-3 py-1 text-xs font-bold capitalize ${meta.chip}`}
+              className={`max-w-[13rem] truncate rounded-full border-2 border-ink px-2.5 py-1 text-[11px] font-bold capitalize sm:max-w-none sm:px-3 sm:text-xs ${meta.chip}`}
             >
               {brand.name} · {gender} · {sizeLabel}
             </span>
           </div>
 
           <div className="mt-2 flex flex-wrap items-baseline gap-x-3">
-            <span className="font-display text-5xl font-bold leading-none sm:text-6xl">
+            <span className="font-display text-4xl font-bold leading-none sm:text-6xl">
               {meta.label}
             </span>
             <span className="font-display text-lg font-semibold text-ink/60">{meta.tagline}</span>
@@ -761,16 +761,16 @@ export default function FitChecker() {
             </Link>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
             <button
               onClick={() => setStep(1)}
-              className="rounded-2xl border-2 border-ink bg-white px-5 py-3 font-display font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              className="min-h-12 w-full rounded-xl border-2 border-ink bg-white px-5 py-3 font-display font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:w-auto sm:rounded-2xl"
             >
               ← Edit measurements
             </button>
             <button
               onClick={checkAnother}
-              className="rounded-2xl border-2 border-ink bg-ink px-6 py-3 font-display text-lg font-bold text-white shadow-hard-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              className="min-h-12 w-full rounded-xl border-2 border-ink bg-ink px-5 py-3 font-display text-base font-bold text-white shadow-hard-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:w-auto sm:rounded-2xl sm:px-6 sm:text-lg"
             >
               Check another garment →
             </button>
