@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import FitChecker from "@/components/fit-checker";
 
 export const Route = createFileRoute("/")({
@@ -109,6 +109,12 @@ function Index() {
             Measure guide
           </a>
         </div>
+        <Link
+          to="/wardrobe"
+          className="ml-auto mr-3 rounded-2xl border-2 border-ink bg-sun px-4 py-3 font-display text-sm font-semibold text-ink shadow-hard-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none md:ml-0"
+        >
+          My Wardrobe
+        </Link>
         <a
           href="#check"
           className="rounded-2xl border-2 border-ink bg-ink px-4 py-3 font-display text-sm font-semibold text-white shadow-hard-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:pl-5 sm:pr-4"
