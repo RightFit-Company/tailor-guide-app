@@ -10,12 +10,11 @@ function detectIOS(): boolean {
 }
 
 export function DisclaimerModal() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     setIsIOS(detectIOS());
-    setOpen(true);
   }, []);
 
   if (!open) return null;
