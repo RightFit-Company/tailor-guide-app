@@ -6,5 +6,5 @@
 - [x] Promote My Wardrobe after body measurements and fit results.
 - [x] Verify build status and public desktop/mobile wardrobe flows.
 - [x] Verify a signed-in selection-to-photo flow with an existing scanned wardrobe item.
-- [ ] Optimise the fit checker, navigation, popup, and wardrobe for mobile screens.
-- [ ] Verify the updated mobile layouts have no overflow or clipped controls.
+- [x] Optimise the fit checker, navigation, popup, and wardrobe for mobile screens.
+- [x] Verify the updated mobile layouts have no overflow or clipped controls.
