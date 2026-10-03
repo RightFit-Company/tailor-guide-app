@@ -15,9 +15,9 @@ export const Route = createFileRoute("/wardrobe")({
   head: () => ({
     meta: [
       { title: "My Wardrobe — RightFit" },
-      { name: "description", content: "Scan your tops and trousers, let AI cut them out, and hang them on your own 3D clothes rail." },
+      { name: "description", content: "Scan your tops and trousers, build outfits, and preview them on your measurement-shaped 3D figure." },
       { property: "og:title", content: "My Wardrobe — RightFit" },
-      { property: "og:description", content: "Your scanned clothes on a 3D rail — tap any item to try it on your 3D body." },
+      { property: "og:description", content: "Your scanned clothes on a 3D rail — combine tops and trousers on your own 3D figure." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -224,7 +224,7 @@ function WardrobePage() {
         </div>
         <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">My Wardrobe</h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Snap a photo of a t-shirt, top or trousers. AI cuts it out, works out what it is, and hangs it on your rail.
+          Scan your clothes, hang them on your 3D rail, then combine a top and trousers on your measurement-shaped figure.
         </p>
 
         {loading ? null : !user ? (
