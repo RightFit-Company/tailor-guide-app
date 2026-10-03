@@ -39,11 +39,11 @@ function Garment({ item, x, selected, onSelect }: { item: RailItem; x: number; s
 
 export default function ClothesRail({
   items,
-  selectedId,
+  selectedIds,
   onSelect,
 }: {
   items: RailItem[];
-  selectedId: string | null;
+  selectedIds: string[];
   onSelect: (id: string) => void;
 }) {
   const width = Math.max(items.length * SPACING + 0.6, 4);
@@ -74,7 +74,7 @@ export default function ClothesRail({
       </mesh>
       <Suspense fallback={null}>
         {items.map((it, i) => (
-          <Garment key={it.id} item={it} x={start + i * SPACING} selected={it.id === selectedId} onSelect={() => onSelect(it.id)} />
+          <Garment key={it.id} item={it} x={start + i * SPACING} selected={selectedIds.includes(it.id)} onSelect={() => onSelect(it.id)} />
         ))}
       </Suspense>
       <ContactShadows position={[0, 0.01, 0]} opacity={0.35} scale={14} blur={2.5} far={4} />
