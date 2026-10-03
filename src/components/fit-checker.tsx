@@ -235,6 +235,7 @@ export default function FitChecker() {
           waist: normalizeField(parsed.waist),
           hips: normalizeField(parsed.hips),
           height: normalizeField(parsed.height),
+          leg: normalizeField(parsed.leg),
         });
       }
     } catch {
@@ -257,6 +258,9 @@ export default function FitChecker() {
 
   const bodyRaw = parseValues(body);
   const bodyParsed = adjustBodyForCup(bodyRaw, garmentType, bodyType, cup);
+  // Leg length: auto-estimated from height unless the user measured it themselves.
+  const autoLegCm = bodyRaw.height != null ? estimateInseamCm(bodyRaw.height) : undefined;
+  const legCm = legMode === "auto" ? autoLegCm : bodyRaw.inseam;
   const bodyReady = bodyRaw.chest != null && bodyParsed.waist != null;
   const hipsMissing = garmentType === "trousers" && bodyParsed.hips == null;
   const garmentReady = sizeEntry != null;
