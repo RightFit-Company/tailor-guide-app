@@ -301,7 +301,7 @@ function WardrobePage() {
                       {item ? <img src={item.url} alt={item.description} className="h-20 w-20 object-contain" /> : <div className="flex h-20 w-20 items-center justify-center border-2 border-dashed border-ink/30 text-2xl">{index === 0 ? "👕" : "👖"}</div>}
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold uppercase text-muted-foreground">{index === 0 ? "Top" : "Trousers"}</p>
-                        <p className="truncate font-display text-lg font-bold capitalize">{item?.description ?? "Pick from the rail"}</p>
+                         <p className="truncate font-display text-lg font-bold capitalize">{item?.description ?? "Pick from your catalog"}</p>
                         {item && <Button type="button" variant="link" onClick={() => void remove(item)} className="mt-1 h-auto p-0 text-xs font-bold text-foreground underline"><Trash2 aria-hidden="true" />Remove</Button>}
                       </div>
                     </div>
@@ -314,12 +314,12 @@ function WardrobePage() {
                   <p className="max-w-lg text-xs text-muted-foreground">AI creates a new fashion photo using your selected clothes as references. Small details may vary.</p>
                 </div>
                 {(makingOutfit || outfitPhoto) && (
-                  <div className="mt-5 overflow-hidden rounded-lg border-2 border-ink bg-background">
+                  <div className="mt-5 overflow-hidden rounded-lg border-2 border-ink bg-muted">
                     {outfitPhoto ? (
                       <img
                         src={outfitPhoto}
                         alt={`AI-created person wearing ${[top?.description, trousers?.description].filter(Boolean).join(" and ")}`}
-                        className={`mx-auto aspect-[2/3] max-h-[760px] w-full object-cover transition-[filter] ${outfitPhotoFinal ? "blur-0" : "blur-2xl"}`}
+                        className={`mx-auto block max-h-[760px] w-auto max-w-full object-contain transition-[filter] ${outfitPhotoFinal ? "blur-0" : "blur-2xl"}`}
                       />
                     ) : (
                       <div className="flex aspect-[2/3] max-h-[760px] w-full flex-col items-center justify-center bg-muted p-8 text-center">
