@@ -7,6 +7,7 @@ import {
   VERDICT_META,
   computeFit,
   easeLabel,
+  recommendSize,
   fmt,
   toCm,
   type BodyCm,
@@ -180,6 +181,7 @@ export default function FitChecker() {
   const [garmentType, setGarmentType] = useState<GarmentType>("top");
   const [brandId, setBrandId] = useState(BRANDS[0]!.id);
   const [sizeLabel, setSizeLabel] = useState<string>("");
+  const [mode, setMode] = useState<"check" | "find">("check");
 
   useEffect(() => {
     try {
@@ -215,6 +217,11 @@ export default function FitChecker() {
   const bodyReady = bodyParsed.chest != null && bodyParsed.waist != null;
   const hipsMissing = garmentType === "trousers" && bodyParsed.hips == null;
   const garmentReady = sizeEntry != null;
+  const recommendation = useMemo(
+    () => recommendSize(garmentType, bodyParsed, sizes),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [garmentType, body, sizes],
+  );
 
   const result: FitResult | null = useMemo(() => {
     if (step !== 3 || !sizeEntry) return null;
@@ -355,6 +362,18 @@ export default function FitChecker() {
             </div>
           </div>
 
+          <div className="mt-5 max-w-sm">
+            <ToggleGroup<"check" | "find">
+              options={[
+                { value: "check", label: "Check a size" },
+                { value: "find", label: "Find my size" },
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
+          </div>
+
+          {mode === "check" ? (
           <div className="mt-4">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">
               Size on the label
@@ -375,6 +394,54 @@ export default function FitChecker() {
               ))}
             </div>
           </div>
+          ) : hipsMissing ? (
+            <p className="mt-4 text-sm font-bold text-ink/60">
+              Add your hip measurement on the body step to find your trouser size.
+            </p>
+          ) : (
+            <div className="mt-4">
+              {recommendation.bestIndex >= 0 && (
+                <div className="rounded-2xl border-2 border-ink bg-mint/30 p-4 shadow-hard-xs">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink/55">
+                    Your best {brand.name} size
+                  </p>
+                  <p className="font-display text-4xl font-bold">
+                    {recommendation.options[recommendation.bestIndex]!.size.label}
+                  </p>
+                  <p className="text-sm font-medium text-ink/70">
+                    {VERDICT_META[recommendation.options[recommendation.bestIndex]!.result.verdict].label}{" "}
+                    — {VERDICT_META[recommendation.options[recommendation.bestIndex]!.result.verdict].tagline.toLowerCase()}
+                  </p>
+                </div>
+              )}
+              <p className="mb-2 mt-4 text-[11px] font-bold uppercase tracking-wider text-ink/45">
+                How every size would fit you
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {recommendation.options.map((o, i) => {
+                  const m = VERDICT_META[o.result.verdict];
+                  return (
+                    <button
+                      key={o.size.label}
+                      onClick={() => {
+                        setSizeLabel(o.size.label);
+                        setStep(3);
+                      }}
+                      className={`rounded-2xl border-2 border-ink px-3 py-2 text-left transition-all hover:-translate-y-0.5 ${
+                        i === recommendation.bestIndex ? "bg-white shadow-hard-sm" : "bg-white"
+                      }`}
+                    >
+                      <span className="block font-display text-base font-bold">{o.size.label}</span>
+                      <span className={`mt-1 inline-block rounded-full border-2 border-ink px-2 text-[11px] font-bold ${m.chip}`}>
+                        {m.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs font-medium text-ink/50">Tap any size to see its full fit report.</p>
+            </div>
+          )}
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
             <button
