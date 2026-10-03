@@ -718,6 +718,28 @@ export default function FitChecker() {
             })}
           </div>
 
+          {/* Trouser length verdict */}
+          {result.length && (
+            <div className="mt-3 rounded-2xl border-2 border-ink bg-paper/60 p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="font-display text-base font-bold">Length</span>
+                <span
+                  className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-[11px] font-bold ${LENGTH_META[result.length.verdict].chip}`}
+                >
+                  {LENGTH_META[result.length.verdict].label}
+                </span>
+              </div>
+              <p className="mt-1 text-xs font-bold text-ink/60">
+                Your inside leg {fmt(result.length.legCm, legUnit)} → typical inseam{" "}
+                {fmt(result.length.inseamCm, legUnit)} {legUnit}
+                {legMode === "auto" ? " (estimated from your height)" : ""}
+              </p>
+              <p className="mt-1 text-xs font-medium text-ink/60">
+                {LENGTH_META[result.length.verdict].tagline}
+              </p>
+            </div>
+          )}
+
           <p className="mt-4 text-xs font-medium text-ink/50">
             Based on {brand.name}'s typical {gender} {garmentType} measurements for size{" "}
             {sizeLabel}. Brands vary season to season — when in doubt, try it on.
