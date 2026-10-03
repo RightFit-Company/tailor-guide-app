@@ -378,6 +378,86 @@ export default function FitChecker() {
               />
             ))}
           </div>
+
+          {/* Leg length — auto-estimated from height by default */}
+          <div className="mt-3 rounded-2xl border-2 border-ink bg-paper/60 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-display text-lg font-semibold">Leg length (inside leg)</p>
+                <p className="mt-0.5 text-xs font-medium text-ink/60">
+                  Crotch to ankle — used to check trouser length.
+                </p>
+              </div>
+              <div className="flex rounded-full border-2 border-ink bg-paper p-0.5">
+                {(
+                  [
+                    { value: "auto", label: "Auto from height" },
+                    { value: "manual", label: "Measure it" },
+                  ] as const
+                ).map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => setLegMode(o.value)}
+                    aria-pressed={legMode === o.value}
+                    className={`rounded-full px-3 py-1 font-display text-[11px] font-bold uppercase transition-colors ${
+                      legMode === o.value ? "bg-ink text-white" : "text-ink/55 hover:text-ink"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {legMode === "auto" ? (
+              <p className="mt-3 text-sm font-bold text-ink/70">
+                {autoLegCm != null ? (
+                  <>
+                    Estimated inside leg: {fmt(autoLegCm, body.height.unit)} {body.height.unit}
+                    <span className="ml-2 font-medium text-ink/50">
+                      (rough guess from your height — switch to “Measure it” for accuracy)
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-medium text-ink/50">
+                    Add your height above and we'll estimate your inside leg from it.
+                  </span>
+                )}
+              </p>
+            ) : (
+              <div className="mt-3 max-w-xs">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={1}
+                    max={200}
+                    step="0.5"
+                    placeholder="—"
+                    value={body.leg.value}
+                    onChange={(e) => setBody((b) => ({ ...b, leg: { ...b.leg, value: e.target.value } }))}
+                    className="w-full rounded-2xl border-2 border-ink bg-white px-4 py-2.5 font-display text-2xl font-semibold shadow-hard-xs outline-none placeholder:text-ink/25 focus:-translate-y-0.5 focus:shadow-hard-sm"
+                  />
+                  <div className="flex rounded-full border-2 border-ink bg-paper p-0.5">
+                    {(["cm", "in"] as Unit[]).map((u) => (
+                      <button
+                        key={u}
+                        type="button"
+                        onClick={() => setBody((b) => ({ ...b, leg: { ...b.leg, unit: u } }))}
+                        aria-label={`Leg length in ${u === "cm" ? "centimetres" : "inches"}`}
+                        className={`rounded-full px-2.5 py-0.5 font-display text-[11px] font-bold uppercase transition-colors ${
+                          body.leg.unit === u ? "bg-ink text-white" : "text-ink/55 hover:text-ink"
+                        }`}
+                      >
+                        {u}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="mt-6 flex items-center justify-end gap-3">
             {!bodyReady && (
               <span className="text-xs font-bold text-ink/50">Chest and waist are needed</span>
