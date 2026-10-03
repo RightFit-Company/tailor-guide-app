@@ -1,41 +1,7 @@
-import { Canvas } from "@react-three/fiber";
-import { ContactShadows, Environment, Lightformer, OrbitControls, useTexture } from "@react-three/drei";
-import { Suspense } from "react";
-import * as THREE from "three";
+import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export type RailItem = { id: string; url: string; kind: "top" | "trousers" };
-
-const SPACING = 1.25;
-
-function Garment({ item, x, selected, onSelect }: { item: RailItem; x: number; selected: boolean; onSelect: () => void }) {
-  const tex = useTexture(item.url);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const h = item.kind === "top" ? 1.5 : 1.9;
-  return (
-    <group position={[x, 0, selected ? 0.35 : 0]}>
-      {/* hanger */}
-      <mesh position={[0, 2.62, 0]} rotation-x={Math.PI / 2}>
-        <torusGeometry args={[0.09, 0.015, 8, 24, Math.PI * 1.4]} />
-        <meshStandardMaterial color="#1a1714" metalness={0.6} roughness={0.3} />
-      </mesh>
-      <mesh position={[0, 2.5, 0]} rotation-z={Math.PI / 2}>
-        <cylinderGeometry args={[0.025, 0.025, 1.1, 10]} />
-        <meshStandardMaterial color="#b98a5a" roughness={0.6} />
-      </mesh>
-      <mesh
-        position={[0, 2.5 - h / 2, 0]}
-        castShadow
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect();
-        }}
-      >
-        <planeGeometry args={[h, h]} />
-        <meshStandardMaterial map={tex} transparent alphaTest={0.4} side={THREE.DoubleSide} roughness={0.9} />
-      </mesh>
-    </group>
-  );
-}
+export type RailItem = { id: string; url: string; kind: "top" | "trousers"; description: string; color: string };
 
 export default function ClothesRail({
   items,
@@ -46,39 +12,32 @@ export default function ClothesRail({
   selectedIds: string[];
   onSelect: (id: string) => void;
 }) {
-  const width = Math.max(items.length * SPACING + 0.6, 4);
-  const start = -((items.length - 1) * SPACING) / 2;
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.8, 5.2], fov: 45 }}>
-      <color attach="background" args={["#fff6ec"]} />
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[3, 6, 4]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
-      <Environment>
-        <Lightformer intensity={2} position={[0, 5, 5]} scale={[10, 10, 1]} />
-        <Lightformer intensity={1} color="#ffd9c8" position={[-5, 1, -1]} rotation-y={Math.PI / 2} scale={[20, 1, 1]} />
-      </Environment>
-      {/* rail */}
-      <mesh position={[0, 2.72, 0]} rotation-z={Math.PI / 2}>
-        <cylinderGeometry args={[0.04, 0.04, width, 16]} />
-        <meshStandardMaterial color="#1a1714" metalness={0.7} roughness={0.25} />
-      </mesh>
-      {[-1, 1].map((s) => (
-        <mesh key={s} position={[(s * width) / 2, 1.36, 0]}>
-          <cylinderGeometry args={[0.04, 0.04, 2.72, 12]} />
-          <meshStandardMaterial color="#1a1714" metalness={0.7} roughness={0.25} />
-        </mesh>
-      ))}
-      <mesh rotation-x={-Math.PI / 2} receiveShadow>
-        <circleGeometry args={[12, 48]} />
-        <meshStandardMaterial color="#f3e3cf" roughness={1} />
-      </mesh>
-      <Suspense fallback={null}>
-        {items.map((it, i) => (
-          <Garment key={it.id} item={it} x={start + i * SPACING} selected={selectedIds.includes(it.id)} onSelect={() => onSelect(it.id)} />
-        ))}
-      </Suspense>
-      <ContactShadows position={[0, 0.01, 0]} opacity={0.35} scale={14} blur={2.5} far={4} />
-      <OrbitControls target={[0, 1.6, 0]} enablePan maxPolarAngle={Math.PI / 2.05} minDistance={2.5} maxDistance={12} />
-    </Canvas>
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {items.map((item) => {
+        const selected = selectedIds.includes(item.id);
+        return (
+          <Button
+            key={item.id}
+            type="button"
+            variant="outline"
+            aria-pressed={selected}
+            onClick={() => onSelect(item.id)}
+            className={`relative h-auto min-w-0 whitespace-normal rounded-lg border-2 border-ink p-0 text-left shadow-[var(--shadow-hard-sm)] transition-transform hover:bg-card active:translate-x-0.5 active:translate-y-0.5 ${selected ? "bg-sun ring-4 ring-brand" : "bg-card"}`}
+          >
+            <span className="flex w-full flex-col">
+              <span className="relative aspect-square w-full overflow-hidden rounded-t-md bg-background p-3">
+                <img src={item.url} alt={item.description} className="h-full w-full object-contain" />
+                {selected && <span className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-ink bg-mint"><Check aria-hidden="true" /></span>}
+              </span>
+              <span className="min-w-0 border-t-2 border-ink px-3 py-3">
+                <span className="block text-xs font-bold uppercase text-muted-foreground">{item.kind === "top" ? "Top" : "Trousers"}</span>
+                <span className="mt-1 block truncate font-display text-base font-bold capitalize">{item.description}</span>
+              </span>
+            </span>
+          </Button>
+        );
+      })}
+    </div>
   );
 }
