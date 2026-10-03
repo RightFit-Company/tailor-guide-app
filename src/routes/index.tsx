@@ -67,16 +67,21 @@ const FIT_CARDS = [
 const MEASURE_CARDS = [
   {
     n: "01",
+    title: "Height",
+    text: "How tall you are, without shoes. Each measurement can be in cm or inches.",
+  },
+  {
+    n: "02",
     title: "Chest",
     text: "Wrap the tape around the fullest part of your chest, keep it level, arms relaxed.",
   },
   {
-    n: "02",
+    n: "03",
     title: "Waist",
     text: "Measure around the narrowest point of your torso, just above your navel.",
   },
   {
-    n: "03",
+    n: "04",
     title: "Hips",
     text: "Measure around the fullest part of your hips and seat, feet together.",
   },
