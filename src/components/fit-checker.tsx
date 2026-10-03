@@ -218,12 +218,8 @@ export default function FitChecker() {
 
   const result: FitResult | null = useMemo(() => {
     if (step !== 3 || !sizeEntry) return null;
-    // Charts are in cm — convert the body to cm and compute in cm.
-    const bodyCm: BodyCm = {
-      chest: bodyParsed.chest != null ? toCm(bodyParsed.chest, unit) : undefined,
-      waist: bodyParsed.waist != null ? toCm(bodyParsed.waist, unit) : undefined,
-      hips: bodyParsed.hips != null ? toCm(bodyParsed.hips, unit) : undefined,
-    };
+    // parseValues already converts each measurement to cm using its own unit.
+    const bodyCm: BodyCm = bodyParsed;
     const garmentCm: BodyCm = {
       chest: sizeEntry.chest,
       waist: sizeEntry.waist,
@@ -231,10 +227,16 @@ export default function FitChecker() {
     };
     return computeFit(garmentType, "cm", bodyCm, garmentCm, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, garmentType, unit, body, sizeEntry]);
+  }, [step, garmentType, body, sizeEntry]);
 
   const meta = result ? VERDICT_META[result.verdict] : null;
   const markerPos = result ? Math.min(97, Math.max(3, Math.round(result.tightness * 100))) : 50;
+  // Each fit row is shown in the unit its measurement was entered in.
+  const ROW_UNITS: Record<string, Unit> = {
+    Chest: body.chest.unit,
+    Waist: body.waist.unit,
+    Hips: body.hips.unit,
+  };
 
   const checkAnother = () => {
     setSizeLabel("");
@@ -250,19 +252,6 @@ export default function FitChecker() {
           const state = n === step ? "active" : n < step ? "done" : "todo";
           return <StepChip key={label} index={n} label={label} state={state} />;
         })}
-        <div className="ml-auto flex rounded-full border-2 border-ink bg-paper p-0.5">
-          {(["cm", "in"] as Unit[]).map((u) => (
-            <button
-              key={u}
-              onClick={() => switchUnit(u)}
-              className={`rounded-full px-3 py-1 font-display text-xs font-bold uppercase transition-colors ${
-                unit === u ? "bg-ink text-white" : "text-ink/55 hover:text-ink"
-              }`}
-            >
-              {u}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* STEP 1 — body */}
@@ -272,15 +261,16 @@ export default function FitChecker() {
           <p className="mt-1 text-sm font-medium text-ink/60">
             Grab a soft tape measure. These are saved on your device so you only do this once.
           </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {BODY_FIELDS.map((f) => (
               <NumberField
                 key={f.key}
                 label={f.label}
                 hint={f.hint}
-                unit={unit}
-                value={body[f.key]}
-                onChange={(v) => setBody((b) => ({ ...b, [f.key]: v }))}
+                unit={body[f.key].unit}
+                value={body[f.key].value}
+                onChange={(v) => setBody((b) => ({ ...b, [f.key]: { ...b[f.key], value: v } }))}
+                onUnitChange={(u) => setBody((b) => ({ ...b, [f.key]: { ...b[f.key], unit: u } }))}
               />
             ))}
           </div>
@@ -456,13 +446,15 @@ export default function FitChecker() {
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {result.rows.map((row) => {
               const rowMeta = VERDICT_META[row.verdict];
+              const rowUnit = ROW_UNITS[row.label] ?? "cm";
               const fill = Math.min(100, Math.max(3, (row.bodyCm / row.garmentCm) * 100));
               return (
                 <div key={row.label} className="rounded-2xl border-2 border-ink bg-paper/60 p-4">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="font-display text-base font-bold">{row.label}</span>
                     <span className="text-xs font-bold text-ink/60">
-                      You {fmt(row.bodyCm, unit)} → garment {fmt(row.garmentCm, unit)} {unit}
+                      You {fmt(row.bodyCm, rowUnit)} → garment {fmt(row.garmentCm, rowUnit)}{" "}
+                      {rowUnit}
                     </span>
                   </div>
                   <div className="mt-2 h-3 overflow-hidden rounded-full border-2 border-ink bg-white">
@@ -472,7 +464,7 @@ export default function FitChecker() {
                     />
                   </div>
                   <div className="mt-2 flex justify-between text-xs font-bold">
-                    <span className="text-ink/55">Ease {easeLabel(row.easeCm, unit)}</span>
+                    <span className="text-ink/55">Ease {easeLabel(row.easeCm, rowUnit)}</span>
                     <span className={row.verdict === "right" ? "text-ink" : "text-ink/70"}>
                       {rowMeta.label}
                     </span>
