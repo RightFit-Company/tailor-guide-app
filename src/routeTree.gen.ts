@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiWardrobeAnalyzeRouteImport } from './routes/api/wardrobe.analyze'
+import { Route as ApiWardrobeCutoutRouteImport } from './routes/api/wardrobe.cutout'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWardrobeAnalyzeRoute = ApiWardrobeAnalyzeRouteImport.update({
+  id: '/api/wardrobe/analyze',
+  path: '/api/wardrobe/analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWardrobeCutoutRoute = ApiWardrobeCutoutRouteImport.update({
+  id: '/api/wardrobe/cutout',
+  path: '/api/wardrobe/cutout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
+  '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
+  '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
+  '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/wardrobe/analyze' | '/api/wardrobe/cutout'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/wardrobe/analyze' | '/api/wardrobe/cutout'
+  id: '__root__' | '/' | '/api/wardrobe/analyze' | '/api/wardrobe/cutout'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiWardrobeAnalyzeRoute: typeof ApiWardrobeAnalyzeRoute
+  ApiWardrobeCutoutRoute: typeof ApiWardrobeCutoutRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/wardrobe/analyze': {
+      id: '/api/wardrobe/analyze'
+      path: '/api/wardrobe/analyze'
+      fullPath: '/api/wardrobe/analyze'
+      preLoaderRoute: typeof ApiWardrobeAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/wardrobe/cutout': {
+      id: '/api/wardrobe/cutout'
+      path: '/api/wardrobe/cutout'
+      fullPath: '/api/wardrobe/cutout'
+      preLoaderRoute: typeof ApiWardrobeCutoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiWardrobeAnalyzeRoute: ApiWardrobeAnalyzeRoute,
+  ApiWardrobeCutoutRoute: ApiWardrobeCutoutRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
