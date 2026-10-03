@@ -1,23 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { Camera, ImagePlus, LogOut, Sparkles, Trash2, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ClothesRail from "@/components/clothes-rail";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { streamImage } from "@/lib/stream-image";
-import type { BodyType, CupSize } from "@/lib/fit";
-import type { AvatarMeasurements } from "@/lib/avatar";
-
-const ClothesRail = lazy(() => import("@/components/clothes-rail"));
-const BodyViewer = lazy(() => import("@/components/body-viewer"));
+import type { BodyType } from "@/lib/fit";
 
 export const Route = createFileRoute("/wardrobe")({
   ssr: false,
   head: () => ({
     meta: [
       { title: "My Wardrobe — RightFit" },
-      { name: "description", content: "Scan your tops and trousers, build outfits, and preview them on your measurement-shaped 3D figure." },
+      { name: "description", content: "Scan your tops and trousers, build outfits, and create realistic photos of people wearing your clothes." },
       { property: "og:title", content: "My Wardrobe — RightFit" },
-      { property: "og:description", content: "Your scanned clothes on a 3D rail — combine tops and trousers on your own 3D figure." },
+      { property: "og:description", content: "A private 2D catalog for your scanned clothes, with realistic AI outfit photos." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -27,31 +26,12 @@ export const Route = createFileRoute("/wardrobe")({
 
 type Item = { id: string; kind: "top" | "trousers"; description: string; color: string; image_path: string; url: string };
 
-function loadBody(): AvatarMeasurements {
+function loadBodyType(): BodyType {
   try {
-    const raw = JSON.parse(localStorage.getItem("rightfit.body.v1") ?? "{}") as Record<string, { value?: string; unit?: string } | string>;
-    const cm = (k: string) => {
-      const f = raw[k];
-      const v = typeof f === "string" ? f : f?.value;
-      const unit = typeof f === "string" ? "cm" : f?.unit;
-      const n = parseFloat(v ?? "");
-      return Number.isFinite(n) && n > 0 ? (unit === "in" ? n * 2.54 : n) : undefined;
-    };
-    const profile = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { legMode?: "auto" | "manual" };
-    const height = cm("height");
-    const manualLeg = cm("leg");
-    return { chest: cm("chest"), waist: cm("waist"), hips: cm("hips"), height, inseam: profile.legMode === "manual" ? manualLeg : height ? height * 0.45 : undefined };
+    const profile = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { bodyType?: BodyType };
+    return profile.bodyType === "man" ? "man" : "woman";
   } catch {
-    return {};
-  }
-}
-
-function loadProfile(): { bodyType: BodyType; cup: CupSize | "" } {
-  try {
-    const profile = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { bodyType?: BodyType; cup?: CupSize | "" };
-    return { bodyType: profile.bodyType === "man" ? "man" : "woman", cup: profile.cup ?? "" };
-  } catch {
-    return { bodyType: "woman", cup: "" };
+    return "woman";
   }
 }
 
@@ -71,8 +51,10 @@ async function shrink(file: File): Promise<Blob> {
   const c = document.createElement("canvas");
   c.width = Math.round(img.width * scale);
   c.height = Math.round(img.height * scale);
-  c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
-  return new Promise((res) => c.toBlob((b) => res(b!), "image/jpeg", 0.88));
+  const context = c.getContext("2d");
+  if (!context) throw new Error("This photo could not be prepared");
+  context.drawImage(img, 0, 0, c.width, c.height);
+  return new Promise((resolve, reject) => c.toBlob((blob) => blob ? resolve(blob) : reject(new Error("This photo could not be prepared")), "image/jpeg", 0.88));
 }
 
 const card = "rounded-2xl border-2 border-ink bg-card shadow-[var(--shadow-hard)]";
@@ -107,20 +89,20 @@ function AuthCard() {
     <div className={`${card} mx-auto max-w-md p-6`}>
       <h2 className="font-display text-2xl font-bold">{mode === "in" ? "Sign in to your wardrobe" : "Create your wardrobe"}</h2>
       <p className="mt-1 text-sm text-muted-foreground">Your clothes are saved to your account so they follow you to any device.</p>
-      <button type="button" onClick={google} className={`${btn} mt-5 w-full bg-card`}>
+      <Button type="button" variant="outline" onClick={google} className={`${btn} mt-5 h-auto w-full bg-card`}>
         Continue with Google
-      </button>
+      </Button>
       <form onSubmit={submit} className="mt-4 space-y-3">
         <input className="w-full rounded-xl border-2 border-ink bg-background px-4 py-2.5" type="email" required placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <input className="w-full rounded-xl border-2 border-ink bg-background px-4 py-2.5" type="password" required minLength={6} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button disabled={busy} className={`${btn} w-full bg-brand text-primary-foreground`}>
+        <Button disabled={busy} className={`${btn} h-auto w-full bg-brand text-primary-foreground`}>
           {busy ? "One sec…" : mode === "in" ? "Sign in" : "Sign up"}
-        </button>
+        </Button>
       </form>
       {msg && <p className="mt-3 text-sm font-medium">{msg}</p>}
-      <button type="button" onClick={() => setMode(mode === "in" ? "up" : "in")} className="mt-4 text-sm underline">
+      <Button type="button" variant="link" onClick={() => setMode(mode === "in" ? "up" : "in")} className="mt-4 h-auto p-0 text-sm text-foreground underline">
         {mode === "in" ? "New here? Create an account" : "Already have an account? Sign in"}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -132,6 +114,9 @@ function WardrobePage() {
   const [selectedTrousers, setSelectedTrousers] = useState<string | null>(null);
   const [stage, setStage] = useState<null | "reading" | "cutting" | "saving">(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [outfitPhoto, setOutfitPhoto] = useState<string | null>(null);
+  const [outfitPhotoFinal, setOutfitPhotoFinal] = useState(false);
+  const [makingOutfit, setMakingOutfit] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -185,6 +170,7 @@ function WardrobePage() {
       await load();
       if (info.kind === "top") setSelectedTop(ins.data.id);
       else setSelectedTrousers(ins.data.id);
+      setOutfitPhoto(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -203,14 +189,48 @@ function WardrobePage() {
 
   const top = items.find((item) => item.id === selectedTop) ?? null;
   const trousers = items.find((item) => item.id === selectedTrousers) ?? null;
-  const body = loadBody();
-  const profile = loadProfile();
 
   function selectItem(id: string) {
     const item = items.find((candidate) => candidate.id === id);
     if (!item) return;
     if (item.kind === "top") setSelectedTop((current) => current === id ? null : id);
     else setSelectedTrousers((current) => current === id ? null : id);
+    setOutfitPhoto(null);
+    setOutfitPhotoFinal(false);
+  }
+
+  async function makeOutfitPhoto() {
+    if (!session || (!top && !trousers)) return;
+    setError(null);
+    setOutfitPhoto(null);
+    setOutfitPhotoFinal(false);
+    setMakingOutfit(true);
+    try {
+      const selected = [top, trousers].filter((item): item is Item => item != null);
+      const form = new FormData();
+      for (const item of selected) {
+        const response = await fetch(item.url);
+        if (!response.ok) throw new Error("One of your clothing photos could not be loaded");
+        const blob = await response.blob();
+        form.append("image[]", new File([blob], `${item.kind}.png`, { type: blob.type || "image/png" }));
+        form.append("description", `${item.kind}: ${item.description}`);
+      }
+      form.set("presentation", loadBodyType());
+      await streamImage(
+        "/api/wardrobe/outfit",
+        form,
+        (src, isFinal) => {
+          setOutfitPhoto(src);
+          setOutfitPhotoFinal(isFinal);
+        },
+        undefined,
+        { Authorization: `Bearer ${session.access_token}` },
+      );
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The outfit photo could not be made");
+    } finally {
+      setMakingOutfit(false);
+    }
   }
 
   return (
@@ -219,12 +239,12 @@ function WardrobePage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link to="/" className="font-display text-sm font-semibold underline">← Back to fit checker</Link>
           {user && (
-            <button onClick={() => supabase.auth.signOut()} className="text-sm underline">Sign out</button>
+            <Button type="button" variant="link" onClick={() => supabase.auth.signOut()} className="h-auto p-0 text-sm text-foreground underline"><LogOut aria-hidden="true" />Sign out</Button>
           )}
         </div>
         <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">My Wardrobe</h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Scan your clothes, hang them on your 3D rail, then combine a top and trousers on your measurement-shaped figure.
+          Scan your clothes, pick a top and trousers from your catalog, then create a realistic photo of someone wearing the outfit.
         </p>
 
         {loading ? null : !user ? (
@@ -237,9 +257,10 @@ function WardrobePage() {
                 e.target.value = "";
                 if (f) void scan(f);
               }} />
-              <button disabled={!!stage} onClick={() => fileRef.current?.click()} className={`${btn} bg-brand text-primary-foreground`}>
-                {stage === "reading" ? "Reading your item…" : stage === "cutting" ? "Cutting it out…" : stage === "saving" ? "Hanging it up…" : "📷 Scan a clothing item"}
-              </button>
+              <Button disabled={!!stage} onClick={() => fileRef.current?.click()} className={`${btn} h-auto bg-brand text-primary-foreground`}>
+                <Camera aria-hidden="true" />
+                {stage === "reading" ? "Reading your item…" : stage === "cutting" ? "Cutting it out…" : stage === "saving" ? "Adding it…" : "Scan a clothing item"}
+              </Button>
               <span className="text-sm text-muted-foreground">{items.length} item{items.length === 1 ? "" : "s"}</span>
             </div>
             {error && <p className={`${card} mt-4 bg-sun p-3 text-sm font-medium text-ink`}>{error}</p>}
@@ -247,27 +268,32 @@ function WardrobePage() {
               <img src={preview} alt="Cut-out in progress" className={`${card} mt-4 h-48 w-48 object-contain p-2 transition-[filter] ${stage === "cutting" ? "blur-md" : "blur-0"}`} />
             )}
 
-            <div className={`${card} mt-6 h-[420px] overflow-hidden sm:h-[480px]`}>
+            <section className={`${card} mt-6 p-4 sm:p-6`} aria-labelledby="catalog-heading">
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <h2 id="catalog-heading" className="font-display text-2xl font-bold">Your clothes</h2>
+                  <p className="text-sm text-muted-foreground">Tap one top and one pair of trousers to build an outfit.</p>
+                </div>
+                {(top || trousers) && <span className="rounded-full border-2 border-ink bg-mint px-3 py-1 text-xs font-bold">{[top, trousers].filter(Boolean).length} selected</span>}
+              </div>
               {items.length === 0 ? (
-                <div className="flex h-full items-center justify-center p-6 text-center text-muted-foreground">
-                  Your rail is empty — scan your first item to hang it up.
+                <div className="flex min-h-56 flex-col items-center justify-center border-2 border-dashed border-ink/30 p-6 text-center text-muted-foreground">
+                  <ImagePlus className="mb-3 h-9 w-9" aria-hidden="true" />
+                  Your catalog is empty — scan your first item to add it.
                 </div>
               ) : (
-                <Suspense fallback={<div className="p-6">Loading rail…</div>}>
-                  <ClothesRail items={items} selectedIds={[selectedTop, selectedTrousers].filter((id): id is string => id != null)} onSelect={selectItem} />
-                </Suspense>
+                <ClothesRail items={items} selectedIds={[selectedTop, selectedTrousers].filter((id): id is string => id != null)} onSelect={selectItem} />
               )}
-            </div>
-            {items.length > 0 && !top && !trousers && <p className="mt-3 text-sm text-muted-foreground">Tap a top and a pair of trousers to build an outfit. Drag the rail to spin around.</p>}
+            </section>
 
             {(top || trousers) && (
               <div className={`${card} mt-6 p-5`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="font-display text-2xl font-bold">Your outfit</p>
-                    <p className="text-sm text-muted-foreground">Choose one of each from the rail. Tap it again to take it off.</p>
+                    <p className="text-sm text-muted-foreground">Choose one of each from your catalog. Tap it again to deselect it.</p>
                   </div>
-                  <button onClick={() => { setSelectedTop(null); setSelectedTrousers(null); }} className={`${btn} bg-card`}>Clear outfit</button>
+                  <Button type="button" variant="outline" onClick={() => { setSelectedTop(null); setSelectedTrousers(null); setOutfitPhoto(null); }} className={`${btn} h-auto bg-card`}><X aria-hidden="true" />Clear outfit</Button>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {([top, trousers] as const).map((item, index) => (
@@ -276,26 +302,34 @@ function WardrobePage() {
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold uppercase text-muted-foreground">{index === 0 ? "Top" : "Trousers"}</p>
                         <p className="truncate font-display text-lg font-bold capitalize">{item?.description ?? "Pick from the rail"}</p>
-                        {item && <button type="button" onClick={() => void remove(item)} className="mt-1 text-xs font-bold underline">Remove from wardrobe</button>}
+                        {item && <Button type="button" variant="link" onClick={() => void remove(item)} className="mt-1 h-auto p-0 text-xs font-bold text-foreground underline"><Trash2 aria-hidden="true" />Remove</Button>}
                       </div>
                     </div>
                   ))}
                 </div>
-                {!body.chest && !body.waist && (
-                  <p className="mt-4 rounded-xl bg-sun p-3 text-sm font-medium">Add your measurements on the fit checker so this figure matches your proportions.</p>
-                )}
-                <div className="mt-4 h-[560px] overflow-hidden rounded-xl border-2 border-ink sm:h-[640px]">
-                  <Suspense fallback={<div className="p-6">Loading your fitting room…</div>}>
-                    <BodyViewer
-                      body={body}
-                      bodyType={profile.bodyType}
-                      cup={profile.cup}
-                      top={top ? { url: top.url, color: top.color, description: top.description } : undefined}
-                      trousers={trousers ? { url: trousers.url, color: trousers.color, description: trousers.description } : undefined}
-                    />
-                  </Suspense>
+                <div className="mt-5 flex flex-wrap items-center gap-3 border-t-2 border-ink pt-5">
+                  <Button type="button" disabled={makingOutfit} onClick={() => void makeOutfitPhoto()} className={`${btn} h-auto bg-blue text-primary-foreground`}>
+                    <Sparkles aria-hidden="true" />{makingOutfit ? "Creating your outfit photo…" : outfitPhotoFinal ? "Create another photo" : "Create outfit photo"}
+                  </Button>
+                  <p className="max-w-lg text-xs text-muted-foreground">AI creates a new fashion photo using your selected clothes as references. Small details may vary.</p>
                 </div>
-                <p className="mt-3 text-xs font-medium text-muted-foreground">Drag to turn your figure and pinch or scroll to zoom. This is a visual preview, not an exact fabric-drape simulation.</p>
+                {(makingOutfit || outfitPhoto) && (
+                  <div className="mt-5 overflow-hidden rounded-lg border-2 border-ink bg-background">
+                    {outfitPhoto ? (
+                      <img
+                        src={outfitPhoto}
+                        alt={`AI-created person wearing ${[top?.description, trousers?.description].filter(Boolean).join(" and ")}`}
+                        className={`mx-auto aspect-[2/3] max-h-[760px] w-full object-cover transition-[filter] ${outfitPhotoFinal ? "blur-0" : "blur-2xl"}`}
+                      />
+                    ) : (
+                      <div className="flex aspect-[2/3] max-h-[760px] w-full flex-col items-center justify-center bg-muted p-8 text-center">
+                        <Sparkles className="mb-3 h-10 w-10 animate-pulse text-brand" aria-hidden="true" />
+                        <p className="font-display text-xl font-bold">Styling your outfit…</p>
+                        <p className="mt-1 text-sm text-muted-foreground">Your photo can take a little while.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </>
