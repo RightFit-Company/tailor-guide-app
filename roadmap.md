@@ -1,8 +1,8 @@
 # Roadmap
 
-- [x] Replace the basic mannequin with a measurement-shaped 3D person.
-- [x] Let wardrobe users combine one top and one pair of trousers into an outfit.
-- [x] Show scanned cut-outs on the 3D outfit.
+- [ ] Replace the 3D wardrobe rail with a 2D scanned-clothes catalog.
+- [ ] Replace the 3D avatar try-on with a generated photo of a person wearing the selected item or outfit.
+- [ ] Remove the retired 3D avatar code and dependencies.
 - [x] Promote My Wardrobe after body measurements and fit results.
-- [x] Verify avatar rules, build status, and public desktop/mobile wardrobe flows.
-- [ ] Verify a signed-in scan-to-outfit flow (blocked: this project has no test account to use).
+- [ ] Verify build status and public desktop/mobile wardrobe flows.
+- [ ] Verify a signed-in scan-to-photo flow (blocked until an authenticated test session is available).
