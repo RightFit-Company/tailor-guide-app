@@ -202,6 +202,47 @@ function WardrobePage() {
     }
   }
 
+  async function addManual() {
+    if (!session || !user) return;
+    const description = manualDesc.trim();
+    if (description.length < 3) return setError("Describe the item, e.g. \"navy hoodie\"");
+    setError(null);
+    setPreview(null);
+    try {
+      const auth = { Authorization: `Bearer ${session.access_token}` };
+      setStage("cutting");
+      const form = new FormData();
+      form.set("kind", manualKind);
+      form.set("description", description);
+      form.set("color", manualColor);
+      let final: string | null = null;
+      await streamImage("/api/wardrobe/create", form, (src, isFinal) => {
+        setPreview(src);
+        if (isFinal) final = src;
+      }, undefined, auth);
+      if (!final) throw new Error("The picture didn't finish. Please try again.");
+
+      setStage("saving");
+      const blob = await (await fetch(final)).blob();
+      const path = `${user.id}/${crypto.randomUUID()}.png`;
+      const up = await supabase.storage.from("wardrobe").upload(path, blob, { contentType: "image/png" });
+      if (up.error) throw up.error;
+      const info = { kind: manualKind, description, color: manualColor };
+      const ins = await supabase.from("wardrobe_items").insert({ ...info, image_path: path }).select().single();
+      if (ins.error) throw ins.error;
+      await load();
+      setSelection((cur) => toggleItem(cur, ins.data.id, info.kind, (otherId) => items.find((i) => i.id === otherId)?.kind));
+      setOutfitPhoto(null);
+      setManualOpen(false);
+      setManualDesc("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setStage(null);
+      setPreview(null);
+    }
+  }
+
   async function remove(item: Item) {
     await supabase.storage.from("wardrobe").remove([item.image_path]);
     await supabase.from("wardrobe_items").delete().eq("id", item.id);
