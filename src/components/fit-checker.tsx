@@ -554,6 +554,23 @@ export default function FitChecker() {
             {!bodyReady && (
               <span className="text-center text-xs font-bold text-ink/50 sm:text-left">Chest and waist are needed</span>
             )}
+            {user ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void saveMeasurements()}
+                className="min-h-12 w-full rounded-xl border-2 border-ink bg-mint px-5 py-3 font-display text-base font-bold text-white shadow-hard-sm transition-all enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px] enabled:hover:shadow-hard-xs disabled:opacity-40 sm:w-auto sm:rounded-2xl sm:px-6"
+              >
+                {saving ? "Saving…" : "Save to my account"}
+              </button>
+            ) : (
+              <Link
+                to="/wardrobe"
+                className="min-h-12 w-full rounded-xl border-2 border-ink bg-paper px-5 py-3 text-center font-display text-base font-bold text-ink shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:w-auto sm:rounded-2xl sm:px-6"
+              >
+                Sign in to save
+              </Link>
+            )}
             <button
               disabled={!bodyReady}
               onClick={() => setStep(2)}
