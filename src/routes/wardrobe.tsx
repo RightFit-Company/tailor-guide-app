@@ -47,6 +47,22 @@ function loadBodyType(): BodyType {
   }
 }
 
+/** Rough body size in cm from the saved measurements, for the AI photo only. */
+function loadBodyCm(): { height?: number; chest?: number; waist?: number; hips?: number } {
+  try {
+    const raw = JSON.parse(localStorage.getItem("rightfit.body.v1") ?? "{}") as Record<string, { value?: string; unit?: string } | undefined>;
+    const out: Record<string, number> = {};
+    for (const key of ["height", "chest", "waist", "hips"]) {
+      const f = raw[key];
+      const n = parseFloat(f?.value ?? "");
+      if (n > 0) out[key] = Math.round(f?.unit === "in" ? n * 2.54 : n);
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 function fileToDataUrl(file: Blob) {
   return new Promise<string>((res, rej) => {
     const r = new FileReader();
@@ -228,6 +244,8 @@ function WardrobePage() {
       }
       form.set("presentation", modelGender);
       if (hairColor) form.set("hairColor", hairColor);
+      const bodyCm = loadBodyCm();
+      for (const [key, value] of Object.entries(bodyCm)) form.set(key, String(value));
       await streamImage(
         "/api/wardrobe/outfit",
         form,
@@ -346,7 +364,8 @@ function WardrobePage() {
                   <Button type="button" disabled={makingOutfit} onClick={() => void makeOutfitPhoto()} className={`${btn} h-auto w-full whitespace-normal bg-blue text-center text-primary-foreground sm:w-auto sm:whitespace-nowrap`}>
                     <Sparkles aria-hidden="true" />{makingOutfit ? "Creating your outfit photo…" : outfitPhotoFinal ? "Create another photo" : "Create outfit photo"}
                   </Button>
-                  <p className="max-w-lg text-xs text-muted-foreground">AI creates a new fashion photo using your selected clothes as references. Small details may vary.</p>
+                  <p className="max-w-lg text-xs text-muted-foreground">AI creates a new fashion photo using your selected clothes as references, with a body shape roughly based on your saved measurements. Small details may vary.</p>
+                  <p className="w-full rounded-lg border-2 border-ink bg-sun px-3 py-2 text-xs font-bold text-ink"><span className="mr-2 rounded-full border-2 border-ink bg-card px-2 py-0.5 uppercase">Beta</span>Matching your body shape is in beta — the photo is only a rough guide, not an exact likeness.</p>
                   </div>
                 </div>
                 {(makingOutfit || outfitPhoto) && (

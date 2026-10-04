@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import {
   VERDICT_META,
   computeFit,
@@ -295,6 +297,35 @@ export default function FitChecker() {
       // ignore unwritable storage
     }
   }, [body]);
+
+  // Signed-in accounts: pull saved measurements once, then keep the account copy updated.
+  const { user } = useAuth();
+  const syncedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!user || syncedFor.current === user.id) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase.from("body_profiles").select("body, profile").eq("user_id", user.id).maybeSingle();
+      if (cancelled) return;
+      const remote = data?.body as Partial<Record<keyof Values, unknown>> | undefined;
+      if (remote && Object.keys(remote).length) {
+        setBody({ chest: normalizeField(remote.chest), waist: normalizeField(remote.waist), hips: normalizeField(remote.hips), height: normalizeField(remote.height), leg: normalizeField(remote.leg) });
+        const p = (data?.profile ?? {}) as { bodyType?: BodyType; cup?: CupSize | ""; legMode?: "auto" | "manual" };
+        if (p.bodyType) { setBodyType(p.bodyType); setGender(p.bodyType === "man" ? "mens" : "womens"); }
+        if (p.cup !== undefined) setCup(p.cup);
+        if (p.legMode) setLegMode(p.legMode);
+      }
+      syncedFor.current = user.id;
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+  useEffect(() => {
+    if (!user || syncedFor.current !== user.id) return;
+    const t = setTimeout(() => {
+      void supabase.from("body_profiles").upsert({ user_id: user.id, body, profile: { bodyType, cup, legMode }, updated_at: new Date().toISOString() });
+    }, 800);
+    return () => clearTimeout(t);
+  }, [user, body, bodyType, cup, legMode]);
 
 
   const brand = BRANDS.find((b) => b.id === brandId) ?? BRANDS[0]!;

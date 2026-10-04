@@ -22,6 +22,17 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
         const presentation = incoming.get("presentation") === "man" ? "man" : "woman";
         const hairRaw = incoming.get("hairColor");
         const hairColor = typeof hairRaw === "string" && /^[a-z -]{3,24}$/i.test(hairRaw.trim()) ? hairRaw.trim().toLowerCase() : null;
+        const num = (k: string, min: number, max: number) => {
+          const n = Number(incoming.get(k));
+          return Number.isFinite(n) && n >= min && n <= max ? Math.round(n) : null;
+        };
+        const sizes = [
+          ["height", num("height", 120, 230)],
+          ["chest", num("chest", 60, 180)],
+          ["waist", num("waist", 50, 180)],
+          ["hips", num("hips", 60, 190)],
+        ].filter(([, v]) => v != null).map(([k, v]) => `${k} about ${v} cm`);
+        const bodyClause = sizes.length ? ` Give the person a realistic body shape and build roughly matching these measurements: ${sizes.join(", ")}. Show the clothes fitting that body naturally.` : "";
         const streaming = incoming.get("stream") !== "false";
         const referenceRoles = descriptions.map((description, index) => `Reference ${index + 1}: ${description}.`).join(" ");
         const hairClause = hairColor ? ` The person has ${hairColor} hair.` : "";
@@ -31,7 +42,7 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
         form.set("model", IMAGE_MODEL);
         form.set(
           "prompt",
-          `Create a realistic full-body street-style fashion photograph of one adult ${presentation} wearing every clothing item and accessory shown in the reference images.${hairClause} ${referenceRoles} Preserve each garment's colour, cut, fabric appearance, pattern, print, logos, and visible details as closely as possible. Hats go on the head, belts at the waist, socks on the feet and visible, shoes on the feet. The clothing must look naturally worn together and remain the clear focus. Neutral daylight, simple city background, natural standing pose, head-to-toe composition, editorial fashion photography. Do not add text, labels, borders, or extra people.`,
+          `Create a realistic full-body street-style fashion photograph of one adult ${presentation} wearing every clothing item and accessory shown in the reference images.${hairClause}${bodyClause} ${referenceRoles} Preserve each garment's colour, cut, fabric appearance, pattern, print, logos, and visible details as closely as possible. Hats go on the head, belts at the waist, socks on the feet and visible, shoes on the feet. The clothing must look naturally worn together and remain the clear focus. Neutral daylight, simple city background, natural standing pose, head-to-toe composition, editorial fashion photography. Do not add text, labels, borders, or extra people.`,
         );
         form.set("quality", "medium");
         form.set("size", "1024x1536");
