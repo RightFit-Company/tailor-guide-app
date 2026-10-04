@@ -24,7 +24,13 @@ export function getSizes(brand: Brand, gender: Gender, garment: GarmentType): Si
     // No dress chart: bust & waist from the top chart, hips from the same-position trouser size.
     return chart.top.map((t, i) => {
       const b = chart.trousers[Math.min(i, chart.trousers.length - 1)];
-      return { label: t.label, chest: t.chest, waist: t.waist ?? b?.waist, hips: b?.hips ?? (t.chest != null ? t.chest + 4 : undefined) };
+      const e: SizeEntry = { label: t.label };
+      if (t.chest != null) e.chest = t.chest;
+      const waist = t.waist ?? b?.waist;
+      if (waist != null) e.waist = waist;
+      const hips = b?.hips ?? (t.chest != null ? t.chest + 4 : undefined);
+      if (hips != null) e.hips = hips;
+      return e;
     });
   }
   return chart[garment] ?? chart.trousers;
