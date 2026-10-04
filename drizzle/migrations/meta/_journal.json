@@ -8,6 +8,13 @@
       "when": 1791053571209,
       "tag": "0000_wardrobe_items",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791098505333,
+      "tag": "0001_body_profiles",
+      "breakpoints": true
     }
   ]
 }

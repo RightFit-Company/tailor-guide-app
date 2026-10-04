@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_profiles: {
+        Row: {
+          body: Json
+          profile: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: Json
+          profile?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          body?: Json
+          profile?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wardrobe_items: {
         Row: {
           color: string
