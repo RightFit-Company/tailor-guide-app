@@ -49,7 +49,7 @@ export async function analyzeGarment(apiKey: string, image: string): Promise<Ana
           content: [
             {
               type: "input_text",
-              text: "Identify this piece of clothing. Tops include t-shirts, shirts, jumpers, hoodies and light jackets. Blazers are tailored suit-style jackets. Coats include coats, parkas, puffers and trench coats. Dresses include all dresses and jumpsuits. Skirts include all skirts. Trousers include full-length jeans, joggers and chinos. Leggings are leggings and jeggings. Shorts include shorts and culottes. Shoes include trainers, boots, sandals and heels. Socks include all socks and tights. Hats include caps, beanies and bucket hats. Belts are belts.",
+              text: "Identify this piece of clothing. Tops include t-shirts, shirts, jumpers, sweaters and light jackets. Hoodies are hooded sweatshirts and hooded jumpers. Blazers are tailored suit-style jackets. Coats include coats, parkas, puffers and trench coats. Dresses include all dresses and jumpsuits. Skirts include all skirts. Trousers include full-length jeans, joggers and chinos. Leggings are leggings and jeggings. Shorts include shorts and culottes. Shoes include trainers, boots, sandals and heels. Socks include all socks and tights. Hats include caps, beanies and bucket hats. Belts are belts.",
             },
             { type: "input_image", image_url: image },
           ],
@@ -116,7 +116,7 @@ export async function pickOutfit(apiKey: string, style: OutfitStyle, items: Pick
         role: "user",
         content: [{
           type: "input_text",
-          text: `Put together a stylish ${style} outfit from this wardrobe. Pick at most one item of each slot: hat, coat or blazer, top, bottoms (trousers, shorts or leggings), skirt, dress, belt, socks, shoes. EITHER pick a dress (then no top, skirt or bottoms) OR a top with bottoms or a skirt. A skirt may only be combined with leggings, never trousers or shorts. A coat or blazer can go over anything. Only add a coat or blazer if it suits the style. Only add hats, belts or socks if they suit the ${style} style. Make the colours go together, and vary your choice a little each time (random seed ${Math.floor(Math.random() * 1e6)}). Return only the ids.\n\nid | kind | description\n${list}`,
+          text: `Put together a stylish ${style} outfit from this wardrobe. Pick at most one item of each slot: hat, coat or blazer, top or hoodie, bottoms (trousers, shorts or leggings), skirt, dress, belt, socks, shoes. EITHER pick a dress (then no top, hoodie, skirt or bottoms) OR a top or hoodie with bottoms or a skirt. A skirt may only be combined with leggings, never trousers or shorts. A coat or blazer can go over anything. Only add a coat or blazer if it suits the style. Only add hats, belts or socks if they suit the ${style} style. Make the colours go together, and vary your choice a little each time (random seed ${Math.floor(Math.random() * 1e6)}). Return only the ids.\n\nid | kind | description\n${list}`,
         }],
       }],
     }),

@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import type { Kind } from "@/lib/outfit-rules";
+import { KINDS, type Kind } from "@/lib/outfit-rules";
 import { Button } from "@/components/ui/button";
 
 export type RailItem = { id: string; url: string; kind: Kind; description: string; color: string };
@@ -8,10 +8,12 @@ export default function ClothesRail({
   items,
   selectedIds,
   onSelect,
+  onChangeKind,
 }: {
   items: RailItem[];
   selectedIds: string[];
   onSelect: (id: string) => void;
+  onChangeKind?: (id: string, kind: Kind) => void;
 }) {
   return (
     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
@@ -32,7 +34,21 @@ export default function ClothesRail({
                 {selected && <span className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-mint sm:right-2 sm:top-2 sm:h-8 sm:w-8"><Check aria-hidden="true" /></span>}
               </span>
               <span className="min-w-0 border-t-2 border-ink px-2.5 py-2.5 sm:px-3 sm:py-3">
-                <span className="block text-xs font-bold uppercase text-muted-foreground">{item.kind.charAt(0).toUpperCase() + item.kind.slice(1)}</span>
+                {onChangeKind ? (
+                  <select
+                    value={item.kind}
+                    aria-label={`Change type of ${item.description}`}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => onChangeKind(item.id, e.target.value as Kind)}
+                    className="-ml-1 block max-w-full cursor-pointer rounded-md border-2 border-transparent bg-transparent px-1 py-0.5 text-xs font-bold uppercase text-muted-foreground hover:border-ink"
+                  >
+                    {KINDS.map((k) => (
+                      <option key={k} value={k}>{k.charAt(0).toUpperCase() + k.slice(1)}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="block text-xs font-bold uppercase text-muted-foreground">{item.kind.charAt(0).toUpperCase() + item.kind.slice(1)}</span>
+                )}
                 <span className="mt-1 block truncate font-display text-sm font-bold capitalize sm:text-base">{item.description}</span>
               </span>
             </span>
