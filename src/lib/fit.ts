@@ -20,13 +20,17 @@ const RANGES: Record<GarmentType, { small: number; slim: number; right: number }
 
 /**
  * Waistbands on bottoms need far less ease than hips or chest: more than
- * about an inch (2.5 cm) of spare room and they slide or gape.
+ * about two inches (5.08 cm) of spare room and they slide or gape.
  */
-const WAIST_RANGE = { small: 0, slim: 1.3, right: 2.5 };
+const WAIST_RANGE = { small: 0, slim: 2.5, right: 5.08 };
 
-/** Ease band for a given measurement row — bottoms use the tight waist band. */
+/** Hips on bottoms: up to about 7 cm of ease still reads as "Just right". */
+const HIPS_RANGE = { small: 3, slim: 5, right: 7 };
+
+/** Ease band for a given measurement row — bottoms use the tight waist/hip bands. */
 function rangeFor(garment: GarmentType, key: "chest" | "waist" | "hips") {
   if (key === "waist" && garment !== "top") return WAIST_RANGE;
+  if (key === "hips" && garment !== "top") return HIPS_RANGE;
   return RANGES[garment];
 }
 
