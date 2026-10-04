@@ -1,0 +1,2 @@
+ALTER TABLE public.body_profiles ADD COLUMN IF NOT EXISTS avatar jsonb NOT NULL DEFAULT '{}'::jsonb;
+CREATE POLICY "Own wardrobe files update" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'wardrobe' AND (storage.foldername(name))[1] = auth.uid()::text);
