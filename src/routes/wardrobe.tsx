@@ -132,6 +132,10 @@ function WardrobePage() {
   const [kindFilter, setKindFilter] = useState<Kind | "all">("all");
   const [selection, setSelection] = useState<Partial<Record<Slot, string>>>({});
   const [stage, setStage] = useState<null | "reading" | "cutting" | "saving">(null);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualKind, setManualKind] = useState<Kind>("top");
+  const [manualDesc, setManualDesc] = useState("");
+  const [manualColor, setManualColor] = useState("#3a3d44");
   const [preview, setPreview] = useState<string | null>(null);
   const [outfitPhoto, setOutfitPhoto] = useState<string | null>(null);
   const [outfitPhotoFinal, setOutfitPhotoFinal] = useState(false);
