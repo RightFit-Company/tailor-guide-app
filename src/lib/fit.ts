@@ -24,8 +24,8 @@ const RANGES: Record<GarmentType, { small: number; slim: number; right: number }
  */
 const WAIST_RANGE = { small: 0, slim: 2.5, right: 5.08 };
 
-/** Hips on bottoms: up to about 7 cm of ease still reads as "Just right". */
-const HIPS_RANGE = { small: 3, slim: 5, right: 7 };
+/** Hips on bottoms: up to about 4 inches (10.16 cm) of ease still reads as "Just right". */
+const HIPS_RANGE = { small: 3, slim: 5, right: 10.16 };
 
 /** Ease band for a given measurement row — bottoms use the tight waist/hip bands. */
 function rangeFor(garment: GarmentType, key: "chest" | "waist" | "hips") {
