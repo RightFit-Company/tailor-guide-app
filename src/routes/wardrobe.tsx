@@ -24,7 +24,19 @@ export const Route = createFileRoute("/wardrobe")({
   component: WardrobePage,
 });
 
-type Item = { id: string; kind: "top" | "trousers" | "shorts"; description: string; color: string; image_path: string; url: string };
+type Kind = "top" | "trousers" | "shorts" | "shoes" | "socks" | "hat" | "belt";
+const KINDS: Kind[] = ["top", "trousers", "shorts", "shoes", "socks", "hat", "belt"];
+type Slot = "hat" | "top" | "bottoms" | "belt" | "socks" | "shoes";
+const SLOTS: { slot: Slot; label: string; emoji: string }[] = [
+  { slot: "hat", label: "Hat", emoji: "🧢" },
+  { slot: "top", label: "Top", emoji: "👕" },
+  { slot: "bottoms", label: "Bottoms", emoji: "👖" },
+  { slot: "belt", label: "Belt", emoji: "🪢" },
+  { slot: "socks", label: "Socks", emoji: "🧦" },
+  { slot: "shoes", label: "Shoes", emoji: "👟" },
+];
+const slotOf = (kind: Kind): Slot => (kind === "trousers" || kind === "shorts" ? "bottoms" : kind);
+type Item = { id: string; kind: Kind; description: string; color: string; image_path: string; url: string };
 
 function loadBodyType(): BodyType {
   try {
@@ -110,8 +122,7 @@ function AuthCard() {
 function WardrobePage() {
   const { user, session, loading } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
-  const [selectedTop, setSelectedTop] = useState<string | null>(null);
-  const [selectedTrousers, setSelectedTrousers] = useState<string | null>(null);
+  const [selection, setSelection] = useState<Partial<Record<Slot, string>>>({});
   const [stage, setStage] = useState<null | "reading" | "cutting" | "saving">(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [outfitPhoto, setOutfitPhoto] = useState<string | null>(null);
@@ -129,7 +140,7 @@ function WardrobePage() {
     const signed = rows.length
       ? (await supabase.storage.from("wardrobe").createSignedUrls(rows.map((r) => r.image_path), 3600)).data ?? []
       : [];
-    setItems(rows.map((r, i) => ({ ...r, kind: r.kind === "trousers" ? "trousers" : r.kind === "shorts" ? "shorts" : "top", url: signed[i]?.signedUrl ?? "" })));
+    setItems(rows.map((r, i) => ({ ...r, kind: (KINDS as string[]).includes(r.kind) ? (r.kind as Kind) : "top", url: signed[i]?.signedUrl ?? "" })));
   }, []);
 
   useEffect(() => {
@@ -150,7 +161,7 @@ function WardrobePage() {
         body: JSON.stringify({ image: await fileToDataUrl(small) }),
       });
       if (!aRes.ok) throw new Error((await aRes.text()) || "Couldn't read that photo");
-      const info = (await aRes.json()) as { kind: "top" | "trousers" | "shorts"; description: string; color: string };
+      const info = (await aRes.json()) as { kind: Kind; description: string; color: string };
 
       setStage("cutting");
       const form = new FormData();
@@ -170,8 +181,7 @@ function WardrobePage() {
       const ins = await supabase.from("wardrobe_items").insert({ ...info, image_path: path }).select().single();
       if (ins.error) throw ins.error;
       await load();
-      if (info.kind === "top") setSelectedTop(ins.data.id);
-      else setSelectedTrousers(ins.data.id);
+      setSelection((cur) => ({ ...cur, [slotOf(info.kind)]: ins.data.id }));
       setOutfitPhoto(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -184,31 +194,30 @@ function WardrobePage() {
   async function remove(item: Item) {
     await supabase.storage.from("wardrobe").remove([item.image_path]);
     await supabase.from("wardrobe_items").delete().eq("id", item.id);
-    if (item.kind === "top") setSelectedTop((id) => id === item.id ? null : id);
-    else setSelectedTrousers((id) => id === item.id ? null : id);
+    setSelection((cur) => { const next = { ...cur }; const sl = slotOf(item.kind); if (next[sl] === item.id) delete next[sl]; return next; });
     await load();
   }
 
-  const top = items.find((item) => item.id === selectedTop) ?? null;
-  const trousers = items.find((item) => item.id === selectedTrousers) ?? null;
+  const outfit = SLOTS.map(({ slot }) => items.find((item) => item.id === selection[slot]) ?? null);
+  const chosen = outfit.filter((item): item is Item => item != null);
 
   function selectItem(id: string) {
     const item = items.find((candidate) => candidate.id === id);
     if (!item) return;
-    if (item.kind === "top") setSelectedTop((current) => current === id ? null : id);
-    else setSelectedTrousers((current) => current === id ? null : id);
+    const sl = slotOf(item.kind);
+    setSelection((cur) => { const next = { ...cur }; if (next[sl] === id) delete next[sl]; else next[sl] = id; return next; });
     setOutfitPhoto(null);
     setOutfitPhotoFinal(false);
   }
 
   async function makeOutfitPhoto() {
-    if (!session || (!top && !trousers)) return;
+    if (!session || chosen.length === 0) return;
     setError(null);
     setOutfitPhoto(null);
     setOutfitPhotoFinal(false);
     setMakingOutfit(true);
     try {
-      const selected = [top, trousers].filter((item): item is Item => item != null);
+      const selected = chosen;
       const form = new FormData();
       for (const item of selected) {
         const response = await fetch(item.url);
@@ -247,7 +256,7 @@ function WardrobePage() {
         </div>
         <h1 className="mt-4 font-display text-3xl font-bold sm:text-5xl">My Wardrobe</h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Scan your clothes, pick a top and bottoms from your catalog, then create a realistic photo of someone wearing the outfit.
+          Scan your clothes, pick a hat, top, bottoms, belt, socks and shoes from your catalog, then create a realistic photo of someone wearing the outfit.
         </p>
 
         {loading ? null : !user ? (
@@ -275,9 +284,9 @@ function WardrobePage() {
               <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:mb-5">
                 <div className="min-w-0">
                   <h2 id="catalog-heading" className="font-display text-2xl font-bold">Your clothes</h2>
-                  <p className="text-sm text-muted-foreground">Tap a top and bottoms (trousers or shorts) to build an outfit.</p>
+                  <p className="text-sm text-muted-foreground">Tap a hat, top, bottoms, belt, socks and shoes to build an outfit.</p>
                 </div>
-                {(top || trousers) && <span className="rounded-full border-2 border-ink bg-mint px-3 py-1 text-xs font-bold">{[top, trousers].filter(Boolean).length} selected</span>}
+                {chosen.length > 0 && <span className="rounded-full border-2 border-ink bg-mint px-3 py-1 text-xs font-bold">{chosen.length} selected</span>}
               </div>
               {items.length === 0 ? (
                 <div className="flex min-h-56 flex-col items-center justify-center border-2 border-dashed border-ink/30 p-6 text-center text-muted-foreground">
@@ -285,25 +294,25 @@ function WardrobePage() {
                   Your catalog is empty — scan your first item to add it.
                 </div>
               ) : (
-                <ClothesRail items={items} selectedIds={[selectedTop, selectedTrousers].filter((id): id is string => id != null)} onSelect={selectItem} />
+                <ClothesRail items={items} selectedIds={chosen.map((item) => item.id)} onSelect={selectItem} />
               )}
             </section>
 
-            {(top || trousers) && (
+            {chosen.length > 0 && (
               <div className={`${card} mt-6 p-4 sm:p-5`}>
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                   <div className="min-w-0">
                     <p className="font-display text-2xl font-bold">Your outfit</p>
-                    <p className="text-sm text-muted-foreground">Choose one of each from your catalog. Tap it again to deselect it.</p>
+                    <p className="text-sm text-muted-foreground">Choose up to one of each from your catalog. Tap it again to deselect it.</p>
                   </div>
-                  <Button type="button" variant="outline" onClick={() => { setSelectedTop(null); setSelectedTrousers(null); setOutfitPhoto(null); }} className={`${btn} h-auto w-full bg-card sm:w-auto`}><X aria-hidden="true" />Clear outfit</Button>
+                  <Button type="button" variant="outline" onClick={() => { setSelection({}); setOutfitPhoto(null); }} className={`${btn} h-auto w-full bg-card sm:w-auto`}><X aria-hidden="true" />Clear outfit</Button>
                 </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {([top, trousers] as const).map((item, index) => (
-                    <div key={item?.id ?? (index === 0 ? "empty-top" : "empty-trousers")} className="grid min-h-24 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-xl border-2 border-ink bg-background p-3 sm:grid-cols-[5rem_minmax(0,1fr)]">
-                      {item ? <img src={item.url} alt={item.description} className="h-18 w-18 object-contain sm:h-20 sm:w-20" /> : <div className="flex h-18 w-18 items-center justify-center border-2 border-dashed border-ink/30 text-2xl sm:h-20 sm:w-20">{index === 0 ? "👕" : "🩳"}</div>}
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {outfit.map((item, index) => (
+                    <div key={SLOTS[index].slot} className="grid min-h-24 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-xl border-2 border-ink bg-background p-3 sm:grid-cols-[5rem_minmax(0,1fr)]">
+                      {item ? <img src={item.url} alt={item.description} className="h-18 w-18 object-contain sm:h-20 sm:w-20" /> : <div className="flex h-18 w-18 items-center justify-center border-2 border-dashed border-ink/30 text-2xl sm:h-20 sm:w-20">{SLOTS[index].emoji}</div>}
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold uppercase text-muted-foreground">{index === 0 ? "Top" : "Bottoms"}</p>
+                        <p className="text-xs font-bold uppercase text-muted-foreground">{SLOTS[index].label}</p>
                          <p className="truncate font-display text-lg font-bold capitalize">{item?.description ?? "Pick from your catalog"}</p>
                         {item && <Button type="button" variant="link" onClick={() => void remove(item)} className="mt-1 h-auto p-0 text-xs font-bold text-foreground underline"><Trash2 aria-hidden="true" />Remove</Button>}
                       </div>
@@ -345,7 +354,7 @@ function WardrobePage() {
                     {outfitPhoto ? (
                       <img
                         src={outfitPhoto}
-                        alt={`AI-created person wearing ${[top?.description, trousers?.description].filter(Boolean).join(" and ")}`}
+                        alt={`AI-created person wearing ${chosen.map((item) => item.description).join(", ")}`}
                         className={`mx-auto block max-h-[760px] w-auto max-w-full object-contain transition-[filter] ${outfitPhotoFinal ? "blur-0" : "blur-2xl"}`}
                       />
                     ) : (
