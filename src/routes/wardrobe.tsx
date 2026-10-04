@@ -243,6 +243,27 @@ function WardrobePage() {
     }
   }
 
+  async function changeKind(id: string, kind: Kind) {
+    const item = items.find((i) => i.id === id);
+    if (!item || item.kind === kind) return;
+    setError(null);
+    const { error: e } = await supabase.from("wardrobe_items").update({ kind }).eq("id", id);
+    if (e) return setError(e.message);
+    setItems((cur) => cur.map((i) => (i.id === id ? { ...i, kind } : i)));
+    // Rebuild the outfit selection so the new type can't clash with the wearing rules.
+    setSelection((cur) => {
+      let next: Partial<Record<Slot, string>> = {};
+      for (const slot of SLOTS.map((s) => s.slot)) {
+        const selId = cur[slot];
+        if (!selId) continue;
+        const selItem = selId === id ? { ...item, kind } : items.find((i) => i.id === selId);
+        if (selItem) next = toggleItem(next, selId, selItem.kind, (otherId) => (otherId === id ? kind : items.find((i) => i.id === otherId)?.kind));
+      }
+      return next;
+    });
+    setOutfitPhoto(null);
+  }
+
   async function remove(item: Item) {
     await supabase.storage.from("wardrobe").remove([item.image_path]);
     await supabase.from("wardrobe_items").delete().eq("id", item.id);
@@ -412,7 +433,7 @@ function WardrobePage() {
                       </Button>
                     ))}
                   </div>
-                  {visibleItems.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">No clothes match that.</p> : <ClothesRail items={visibleItems} selectedIds={chosen.map((item) => item.id)} onSelect={selectItem} />}
+                  {visibleItems.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">No clothes match that.</p> : <ClothesRail items={visibleItems} selectedIds={chosen.map((item) => item.id)} onSelect={selectItem} onChangeKind={(id, kind) => void changeKind(id, kind)} />}
                 </>
               )}
             </section>
