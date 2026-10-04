@@ -125,6 +125,25 @@ function Index() {
         >
           My Wardrobe
         </Link>
+        {user ? (
+          <button
+            onClick={handleSignOut}
+            title={`Signed in as ${user.email ?? "you"} — tap to sign out`}
+            className="flex shrink-0 items-center gap-1.5 rounded-xl border-2 border-ink bg-mint px-2 py-1.5 shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:rounded-2xl sm:px-3 sm:py-2.5 sm:shadow-hard-sm"
+          >
+            <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-white font-display text-xs font-bold">
+              {(user.email?.[0] ?? "R").toUpperCase()}
+            </span>
+            <span className="font-display text-sm font-semibold">Sign out</span>
+          </button>
+        ) : (
+          <Link
+            to="/wardrobe"
+            className="shrink-0 rounded-xl border-2 border-ink bg-ink px-3 py-2.5 font-display text-sm font-semibold text-white shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:rounded-2xl sm:px-4 sm:py-3 sm:shadow-hard-sm"
+          >
+            Sign in
+          </Link>
+        )}
         <a
           href="#check"
           className="hidden rounded-2xl border-2 border-ink bg-ink px-4 py-3 font-display text-sm font-semibold text-white shadow-hard-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:block sm:pl-5 sm:pr-4"
