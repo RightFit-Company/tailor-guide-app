@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -327,6 +328,21 @@ export default function FitChecker() {
     return () => clearTimeout(t);
   }, [user, body, bodyType, cup, legMode]);
 
+  const [saving, setSaving] = useState(false);
+  const saveMeasurements = async () => {
+    if (!user || saving) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("body_profiles")
+      .upsert({ user_id: user.id, body, profile: { bodyType, cup, legMode }, updated_at: new Date().toISOString() });
+    setSaving(false);
+    if (error) {
+      toast.error("Couldn't save your measurements — please try again.");
+    } else {
+      toast.success("Measurements saved to your account.");
+    }
+  };
+
 
   const brand = BRANDS.find((b) => b.id === brandId) ?? BRANDS[0]!;
   const sizes = getSizes(brand, gender, garmentType);
@@ -537,6 +553,23 @@ export default function FitChecker() {
           <div className="mt-6 grid gap-2 sm:flex sm:items-center sm:justify-end sm:gap-3">
             {!bodyReady && (
               <span className="text-center text-xs font-bold text-ink/50 sm:text-left">Chest and waist are needed</span>
+            )}
+            {user ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void saveMeasurements()}
+                className="min-h-12 w-full rounded-xl border-2 border-ink bg-mint px-5 py-3 font-display text-base font-bold text-white shadow-hard-sm transition-all enabled:hover:translate-x-[2px] enabled:hover:translate-y-[2px] enabled:hover:shadow-hard-xs disabled:opacity-40 sm:w-auto sm:rounded-2xl sm:px-6"
+              >
+                {saving ? "Saving…" : "Save to my account"}
+              </button>
+            ) : (
+              <Link
+                to="/wardrobe"
+                className="min-h-12 w-full rounded-xl border-2 border-ink bg-paper px-5 py-3 text-center font-display text-base font-bold text-ink shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:w-auto sm:rounded-2xl sm:px-6"
+              >
+                Sign in to save
+              </Link>
             )}
             <button
               disabled={!bodyReady}
