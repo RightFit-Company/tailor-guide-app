@@ -328,3 +328,130 @@ export function getSizeEntry(
   const brand = BRANDS.find((b) => b.id === brandId);
   return brand ? getSizes(brand, gender, garment).find((s) => s.label === sizeLabel) : undefined;
 }
+
+type WomensStyle = "uk" | "letter";
+type MensBottomStyle = "waist" | "letter";
+interface Spec {
+  id: string;
+  name: string;
+  /** cm offset vs. a typical UK high-street fit: negative = runs small, positive = runs large */
+  offset?: number;
+  womens?: WomensStyle;
+  mensBottoms?: MensBottomStyle;
+}
+
+/** Builds approximate charts from standard UK high-street grading (4 cm per UK size, 6 cm per men's letter size, 5 cm per 2" waist). */
+function makeBrand({ id, name, offset = 0, womens = "uk", mensBottoms = "waist" }: Spec): Brand {
+  const o = offset;
+  const ukNums = [6, 8, 10, 12, 14, 16, 18, 20, 22];
+  const wLetters = [
+    { label: "XS (6–8)", i: 0.5 },
+    { label: "S (10–12)", i: 2.5 },
+    { label: "M (14–16)", i: 4.5 },
+    { label: "L (18–20)", i: 6.5 },
+    { label: "XL (22–24)", i: 8.5 },
+  ];
+  const wSteps = womens === "uk" ? ukNums.map((n, i) => ({ label: String(n), i })) : wLetters;
+  const mLetters = ["XS", "S", "M", "L", "XL", "XXL"];
+  const waists = [28, 30, 32, 34, 36, 38, 40];
+  const r = (n: number) => Math.round(n);
+  return {
+    id,
+    name,
+    charts: {
+      womens: {
+        top: wSteps.map(({ label, i }) => ({ label, chest: r(86 + i * 4 + o), waist: r(72 + i * 4 + o) })),
+        trousers: wSteps.map(({ label, i }) => ({ label, waist: r(68 + i * 4 + o), hips: r(92 + i * 4 + o) })),
+      },
+      mens: {
+        top: mLetters.map((label, i) => ({ label, chest: r(96 + i * 6 + o), waist: r(88 + i * 6 + o) })),
+        trousers:
+          mensBottoms === "waist"
+            ? waists.map((w, i) => ({ label: String(w), waist: r(74 + i * 5 + o), hips: r(96 + i * 5 + o) }))
+            : mLetters.map((label, i) => ({ label, waist: r(72 + i * 6 + o), hips: r(94 + i * 6 + o) })),
+      },
+    },
+  };
+}
+
+const MORE_BRANDS: Spec[] = [
+  { id: "riverisland", name: "River Island" },
+  { id: "newlook", name: "New Look" },
+  { id: "topshop", name: "Topshop", offset: -1 },
+  { id: "topman", name: "Topman", offset: -1 },
+  { id: "boohoo", name: "boohoo", offset: -1 },
+  { id: "boohooman", name: "boohooMAN", offset: -1 },
+  { id: "plt", name: "PrettyLittleThing", offset: -2 },
+  { id: "missguided", name: "Missguided", offset: -2 },
+  { id: "nastygal", name: "Nasty Gal", offset: -1 },
+  { id: "mango", name: "Mango", offset: -2, womens: "letter" },
+  { id: "uniqlo", name: "Uniqlo", offset: -1, womens: "letter" },
+  { id: "gap", name: "Gap", offset: 2, womens: "letter" },
+  { id: "levis", name: "Levi's", offset: 0 },
+  { id: "adidas", name: "Adidas", offset: 1, womens: "letter", mensBottoms: "letter" },
+  { id: "puma", name: "Puma", womens: "letter", mensBottoms: "letter" },
+  { id: "underarmour", name: "Under Armour", offset: -1, womens: "letter", mensBottoms: "letter" },
+  { id: "gymshark", name: "Gymshark", offset: -2, womens: "letter", mensBottoms: "letter" },
+  { id: "lululemon", name: "Lululemon", offset: -1, womens: "letter", mensBottoms: "letter" },
+  { id: "northface", name: "The North Face", offset: 2, womens: "letter", mensBottoms: "letter" },
+  { id: "superdry", name: "Superdry", offset: -2, womens: "letter" },
+  { id: "hollister", name: "Hollister", offset: -2, womens: "letter" },
+  { id: "abercrombie", name: "Abercrombie & Fitch", offset: -1, womens: "letter" },
+  { id: "jackwills", name: "Jack Wills", offset: -1 },
+  { id: "fatface", name: "FatFace", offset: 1 },
+  { id: "whitestuff", name: "White Stuff", offset: 2 },
+  { id: "joules", name: "Joules", offset: 1 },
+  { id: "boden", name: "Boden", offset: 1 },
+  { id: "seasalt", name: "Seasalt Cornwall", offset: 2 },
+  { id: "whistles", name: "Whistles", offset: -1 },
+  { id: "reiss", name: "Reiss", offset: -1 },
+  { id: "tedbaker", name: "Ted Baker", offset: -1 },
+  { id: "hobbs", name: "Hobbs" },
+  { id: "phaseeight", name: "Phase Eight" },
+  { id: "monsoon", name: "Monsoon", offset: 1 },
+  { id: "oasis", name: "Oasis" },
+  { id: "warehouse", name: "Warehouse", offset: -1 },
+  { id: "dorothyperkins", name: "Dorothy Perkins", offset: 1 },
+  { id: "wallis", name: "Wallis", offset: 1 },
+  { id: "burton", name: "Burton" },
+  { id: "jackjones", name: "Jack & Jones", offset: -1 },
+  { id: "tommy", name: "Tommy Hilfiger", offset: 1, womens: "letter" },
+  { id: "ralphlauren", name: "Ralph Lauren", offset: 1, womens: "letter" },
+  { id: "calvinklein", name: "Calvin Klein", womens: "letter" },
+  { id: "lacoste", name: "Lacoste", offset: -1, womens: "letter" },
+  { id: "hugoboss", name: "BOSS", offset: -1, womens: "letter" },
+  { id: "fredperry", name: "Fred Perry", offset: -1, womens: "letter" },
+  { id: "bensherman", name: "Ben Sherman", womens: "letter" },
+  { id: "barbour", name: "Barbour", offset: 2, womens: "uk" },
+  { id: "weekday", name: "Weekday", offset: 1, womens: "letter" },
+  { id: "monki", name: "Monki", womens: "letter" },
+  { id: "otherstories", name: "& Other Stories", offset: -1 },
+  { id: "cos", name: "COS", offset: 2, womens: "letter" },
+  { id: "arket", name: "Arket", offset: 1, womens: "letter" },
+  { id: "pullbear", name: "Pull&Bear", offset: -2, womens: "letter" },
+  { id: "bershka", name: "Bershka", offset: -3, womens: "letter" },
+  { id: "stradivarius", name: "Stradivarius", offset: -3, womens: "letter" },
+  { id: "massimodutti", name: "Massimo Dutti", offset: -1, womens: "letter" },
+  { id: "george", name: "George at Asda", offset: 1 },
+  { id: "tu", name: "Tu (Sainsbury's)", offset: 1 },
+  { id: "ff", name: "F&F (Tesco)", offset: 1 },
+  { id: "matalan", name: "Matalan", offset: 1 },
+  { id: "peacocks", name: "Peacocks" },
+  { id: "lonsdale", name: "Lonsdale", womens: "letter", mensBottoms: "letter" },
+  { id: "karrimor", name: "Karrimor", offset: 1, womens: "letter", mensBottoms: "letter" },
+  { id: "everlast", name: "Everlast", womens: "letter", mensBottoms: "letter" },
+  { id: "converse", name: "Converse", womens: "letter", mensBottoms: "letter" },
+  { id: "vans", name: "Vans", womens: "letter", mensBottoms: "letter" },
+  { id: "champion", name: "Champion", womens: "letter", mensBottoms: "letter" },
+  { id: "dickies", name: "Dickies", offset: 2, womens: "letter" },
+  { id: "carhartt", name: "Carhartt WIP", offset: 1, womens: "letter" },
+  { id: "allsaints", name: "AllSaints", offset: -2, womens: "uk" },
+  { id: "jigsaw", name: "Jigsaw" },
+  { id: "karenmillen", name: "Karen Millen", offset: -1 },
+  { id: "simplybe", name: "Simply Be", offset: 2 },
+  { id: "evans", name: "Evans", offset: 2 },
+  { id: "yoursclothing", name: "Yours Clothing", offset: 2 },
+];
+
+BRANDS.push(...MORE_BRANDS.map(makeBrand));
+BRANDS.sort((a, b) => a.name.localeCompare(b.name));
