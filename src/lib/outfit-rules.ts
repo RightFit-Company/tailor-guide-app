@@ -1,7 +1,7 @@
 export type Kind =
-  | "top" | "trousers" | "shorts" | "leggings" | "skirt" | "dress"
+  | "top" | "hoodie" | "trousers" | "shorts" | "leggings" | "skirt" | "dress"
   | "blazer" | "coat" | "shoes" | "socks" | "hat" | "belt";
-export const KINDS: Kind[] = ["top", "blazer", "coat", "dress", "skirt", "trousers", "shorts", "leggings", "shoes", "socks", "hat", "belt"];
+export const KINDS: Kind[] = ["top", "hoodie", "blazer", "coat", "dress", "skirt", "trousers", "shorts", "leggings", "shoes", "socks", "hat", "belt"];
 
 export type Slot = "hat" | "outer" | "top" | "dress" | "skirt" | "bottoms" | "belt" | "socks" | "shoes";
 export const SLOTS: { slot: Slot; label: string; emoji: string }[] = [
@@ -19,6 +19,7 @@ export const SLOTS: { slot: Slot; label: string; emoji: string }[] = [
 export function slotOf(kind: Kind): Slot {
   if (kind === "trousers" || kind === "shorts" || kind === "leggings") return "bottoms";
   if (kind === "blazer" || kind === "coat") return "outer";
+  if (kind === "hoodie") return "top";
   return kind;
 }
 
