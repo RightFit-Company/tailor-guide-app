@@ -626,6 +626,8 @@ export default function FitChecker() {
                   { value: "top", label: "Top" },
                   { value: "trousers", label: "Trousers" },
                   { value: "shorts", label: "Shorts" },
+                  { value: "skirt", label: "Skirt" },
+                  { value: "dress", label: "Dress" },
                 ]}
                 value={garmentType}
                 onChange={(t) => {

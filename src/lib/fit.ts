@@ -1,5 +1,8 @@
 export type Unit = "cm" | "in";
-export type GarmentType = "top" | "trousers" | "shorts";
+export type GarmentType = "top" | "trousers" | "shorts" | "skirt" | "dress";
+
+/** Bottoms sit on a waistband and use the tight waist/hip bands. */
+export const isBottom = (g: GarmentType) => g === "trousers" || g === "shorts" || g === "skirt";
 export type Verdict = "small" | "slim" | "right" | "baggy";
 
 export const CM_PER_IN = 2.54;
@@ -16,6 +19,8 @@ const RANGES: Record<GarmentType, { small: number; slim: number; right: number }
   top: { small: 4, slim: 10, right: 20 },
   trousers: { small: 3, slim: 8, right: 16 },
   shorts: { small: 3, slim: 8, right: 16 },
+  skirt: { small: 3, slim: 8, right: 16 },
+  dress: { small: 4, slim: 10, right: 20 },
 };
 
 /**
@@ -29,8 +34,8 @@ const HIPS_RANGE = { small: 3, slim: 5, right: 17.78 };
 
 /** Ease band for a given measurement row — bottoms use the tight waist/hip bands. */
 function rangeFor(garment: GarmentType, key: "chest" | "waist" | "hips") {
-  if (key === "waist" && garment !== "top") return WAIST_RANGE;
-  if (key === "hips" && garment !== "top") return HIPS_RANGE;
+  if (key === "waist" && isBottom(garment)) return WAIST_RANGE;
+  if (key === "hips" && isBottom(garment)) return HIPS_RANGE;
   return RANGES[garment];
 }
 
@@ -109,6 +114,15 @@ const MEASURED_PAIRS: Record<GarmentType, { key: "chest" | "waist" | "hips"; lab
     { key: "hips", label: "Hips" },
   ],
   shorts: [
+    { key: "waist", label: "Waist" },
+    { key: "hips", label: "Hips" },
+  ],
+  skirt: [
+    { key: "waist", label: "Waist" },
+    { key: "hips", label: "Hips" },
+  ],
+  dress: [
+    { key: "chest", label: "Bust" },
     { key: "waist", label: "Waist" },
     { key: "hips", label: "Hips" },
   ],
@@ -207,7 +221,7 @@ export function easeLabel(easeCm: number, unit: Unit): string {
 function rightBandMiss(result: FitResult): number {
   return result.rows.reduce((sum, r) => {
     const t = rangeFor(result.garment, r.key);
-    const weight = r.key === "hips" && result.garment !== "top" ? 0.3 : 1;
+    const weight = r.key === "hips" && isBottom(result.garment) ? 0.3 : 1;
     if (r.easeCm < t.slim) return sum + (t.slim - r.easeCm) * weight;
     if (r.easeCm >= t.right) return sum + (r.easeCm - t.right) * weight;
     return sum;
@@ -254,6 +268,6 @@ export function cupAllowanceCm(cup: CupSize | ""): number {
 
 /** Body used for a fit check: for women's tops the chest is bumped by the cup allowance. */
 export function adjustBodyForCup(body: BodyCm, garment: GarmentType, bodyType: BodyType, cup: CupSize | ""): BodyCm {
-  if (garment !== "top" || bodyType !== "woman" || body.chest == null) return body;
+  if ((garment !== "top" && garment !== "dress") || bodyType !== "woman" || body.chest == null) return body;
   return { ...body, chest: body.chest + cupAllowanceCm(cup) };
 }

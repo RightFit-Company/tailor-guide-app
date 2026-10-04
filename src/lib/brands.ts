@@ -14,12 +14,19 @@ export interface Brand {
   id: string;
   name: string;
   /** Shorts share the trouser chart when a brand has no separate shorts chart. */
-  charts: Record<Gender, { top: SizeEntry[]; trousers: SizeEntry[]; shorts?: SizeEntry[] }>;
+  charts: Record<Gender, { top: SizeEntry[]; trousers: SizeEntry[]; shorts?: SizeEntry[]; skirt?: SizeEntry[]; dress?: SizeEntry[] }>;
 }
 
-/** Size chart for a garment, falling back to the trouser chart for shorts. */
+/** Size chart for a garment, falling back to the trouser chart for shorts/skirts and a top+trouser blend for dresses. */
 export function getSizes(brand: Brand, gender: Gender, garment: GarmentType): SizeEntry[] {
   const chart = brand.charts[gender];
+  if (garment === "dress" && !chart.dress) {
+    // No dress chart: bust & waist from the top chart, hips from the same-position trouser size.
+    return chart.top.map((t, i) => {
+      const b = chart.trousers[Math.min(i, chart.trousers.length - 1)];
+      return { label: t.label, chest: t.chest, waist: t.waist ?? b?.waist, hips: b?.hips ?? (t.chest != null ? t.chest + 4 : undefined) };
+    });
+  }
   return chart[garment] ?? chart.trousers;
 }
 

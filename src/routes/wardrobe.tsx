@@ -196,7 +196,7 @@ function WardrobePage() {
       const ins = await supabase.from("wardrobe_items").insert({ ...info, image_path: path }).select().single();
       if (ins.error) throw ins.error;
       await load();
-      setSelection((cur) => ({ ...cur, [slotOf(info.kind)]: ins.data.id }));
+      setSelection((cur) => toggleItem(cur, ins.data.id, info.kind, (otherId) => items.find((i) => i.id === otherId)?.kind));
       setOutfitPhoto(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
