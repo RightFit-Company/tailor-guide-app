@@ -91,10 +91,17 @@ const MEASURE_CARDS = [
 ];
 
 function Index() {
+  const { user } = useAuth();
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+  }
+
   return (
     <div className="min-h-screen bg-paper font-sans text-ink">
       {/* Nav */}
-      <nav className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:flex sm:px-6 sm:py-6">
+      <nav className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 px-3 py-4 sm:flex sm:items-center sm:gap-3 sm:px-6 sm:py-6">
         <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
           <div className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-ink bg-brand font-display text-xl font-bold text-white shadow-hard-xs sm:size-11 sm:rounded-2xl sm:text-2xl sm:shadow-hard-sm">
             R
