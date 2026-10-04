@@ -19,6 +19,51 @@ import {
   LENGTH_META,
 } from "@/lib/fit";
 import { BRANDS, getSizeEntry, getSizes, typicalInseamCm, type Gender } from "@/lib/brands";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+
+function BrandPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const current = BRANDS.find((b) => b.id === value);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Choose a brand"
+          className="flex min-h-12 w-full max-w-sm items-center justify-between rounded-xl border-2 border-ink bg-white px-4 py-2 font-display text-base font-bold text-ink shadow-hard-xs"
+        >
+          {current?.name ?? "Choose a brand"}
+          <ChevronsUpDown className="h-4 w-4 opacity-60" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] border-2 border-ink p-0" align="start">
+        <Command>
+          <CommandInput placeholder={`Search ${BRANDS.length} brands…`} />
+          <CommandList className="max-h-72">
+            <CommandEmpty>No brand found.</CommandEmpty>
+            {BRANDS.map((b) => (
+              <CommandItem
+                key={b.id}
+                value={b.name}
+                onSelect={() => {
+                  onChange(b.id);
+                  setOpen(false);
+                }}
+              >
+                <Check className={`mr-2 h-4 w-4 ${b.id === value ? "opacity-100" : "opacity-0"}`} />
+                {b.name}
+              </CommandItem>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 const STORAGE_KEY = "rightfit.body.v1";
 
@@ -529,24 +574,13 @@ export default function FitChecker() {
 
           <div className="mt-4">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-ink/45">Brand</p>
-            <div className="flex flex-wrap gap-2">
-              {BRANDS.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => {
-                    setBrandId(b.id);
-                    setSizeLabel("");
-                  }}
-                  className={`rounded-full border-2 border-ink px-4 py-2 font-display text-sm font-bold transition-all ${
-                    brandId === b.id
-                      ? "bg-brand text-white shadow-hard-xs"
-                      : "bg-white text-ink/60 hover:text-ink"
-                  }`}
-                >
-                  {b.name}
-                </button>
-              ))}
-            </div>
+            <BrandPicker
+              value={brandId}
+              onChange={(id) => {
+                setBrandId(id);
+                setSizeLabel("");
+              }}
+            />
           </div>
 
           <div className="mt-5 max-w-sm">
