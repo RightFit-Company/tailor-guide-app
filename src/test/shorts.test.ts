@@ -42,17 +42,26 @@ describe("waist band on bottoms", () => {
     expect(waist?.verdict).toBe("right");
   });
 
-  it("treats more than 4 inches (10.16 cm) of hip ease as baggy", () => {
-    const result = computeFit("trousers", "cm", { waist: 80, hips: 100 }, { waist: 82, hips: 112 }, false);
+  it("treats more than 7 inches (17.78 cm) of hip ease as baggy", () => {
+    const result = computeFit("trousers", "cm", { waist: 80, hips: 100 }, { waist: 82, hips: 120 }, false);
     const hips = result?.rows.find((row) => row.key === "hips");
-    expect(hips?.easeCm).toBe(12);
+    expect(hips?.easeCm).toBe(20);
     expect(hips?.verdict).toBe("baggy");
   });
 
-  it("treats just under 4 inches (10.16 cm) of hip ease as just right", () => {
-    const result = computeFit("trousers", "cm", { waist: 80, hips: 100 }, { waist: 82, hips: 110.1 }, false);
+  it("treats just under 7 inches (17.78 cm) of hip ease as just right", () => {
+    const result = computeFit("trousers", "cm", { waist: 80, hips: 100 }, { waist: 82, hips: 117.7 }, false);
     const hips = result?.rows.find((row) => row.key === "hips");
     expect(hips?.verdict).toBe("right");
+  });
+
+  it("find-my-size on bottoms favours the size with the right waist over the right hips", () => {
+    const sizes = [
+      { label: "A", waist: 82, hips: 125 }, // waist ease 2 = right (miss 0); hips ease 25 = baggy (miss 7.22 × 0.3 ≈ 2.17)
+      { label: "B", waist: 92, hips: 105 }, // waist ease 12 = baggy (miss 6.92); hips ease 5 = slim (miss 0)
+    ];
+    const rec = recommendSize("trousers", { waist: 80, hips: 100 }, sizes);
+    expect(rec.bestIndex).toBe(0);
   });
 
   it("keeps the loose top band for a top's waist row", () => {

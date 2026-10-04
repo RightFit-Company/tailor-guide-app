@@ -24,8 +24,8 @@ const RANGES: Record<GarmentType, { small: number; slim: number; right: number }
  */
 const WAIST_RANGE = { small: 0, slim: 2.5, right: 5.08 };
 
-/** Hips on bottoms: up to about 4 inches (10.16 cm) of ease still reads as "Just right". */
-const HIPS_RANGE = { small: 3, slim: 5, right: 10.16 };
+/** Hips on bottoms: up to about 7 inches (17.78 cm) of ease still reads as "Just right". */
+const HIPS_RANGE = { small: 3, slim: 5, right: 17.78 };
 
 /** Ease band for a given measurement row — bottoms use the tight waist/hip bands. */
 function rangeFor(garment: GarmentType, key: "chest" | "waist" | "hips") {
@@ -199,12 +199,17 @@ export function easeLabel(easeCm: number, unit: Unit): string {
   return `${sign}${fmt(Math.abs(easeCm), unit)} ${unit}`;
 }
 
-/** How far (cm) each row's ease falls outside the "Just right" band; 0 = perfect. */
+/**
+ * How far (cm) each row's ease falls outside the "Just right" band; 0 = perfect.
+ * On bottoms the waist counts fully while hips count at 30% — the waistband
+ * decides whether trousers/shorts stay up, hips just need enough room.
+ */
 function rightBandMiss(result: FitResult): number {
   return result.rows.reduce((sum, r) => {
     const t = rangeFor(result.garment, r.key);
-    if (r.easeCm < t.slim) return sum + (t.slim - r.easeCm);
-    if (r.easeCm >= t.right) return sum + (r.easeCm - t.right);
+    const weight = r.key === "hips" && result.garment !== "top" ? 0.3 : 1;
+    if (r.easeCm < t.slim) return sum + (t.slim - r.easeCm) * weight;
+    if (r.easeCm >= t.right) return sum + (r.easeCm - t.right) * weight;
     return sum;
   }, 0);
 }
