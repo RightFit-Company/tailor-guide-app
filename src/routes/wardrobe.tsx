@@ -117,6 +117,8 @@ function WardrobePage() {
   const [outfitPhoto, setOutfitPhoto] = useState<string | null>(null);
   const [outfitPhotoFinal, setOutfitPhotoFinal] = useState(false);
   const [makingOutfit, setMakingOutfit] = useState(false);
+  const [modelGender, setModelGender] = useState<BodyType>(() => loadBodyType());
+  const [hairColor, setHairColor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
