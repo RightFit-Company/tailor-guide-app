@@ -15,12 +15,13 @@ describe("shorts", () => {
     expect(result?.length).toBeUndefined();
   });
 
-  it("recommends a shorts size from a chart, ties going to the smaller size", () => {
+  it("recommends the shorts size closest to the Just right band", () => {
     const sizes = [
       { label: "S", waist: 76, hips: 100 },
       { label: "M", waist: 84, hips: 108 },
     ];
+    // S gives 4 cm ease (slim, outside the band); M gives 12 cm (just right) — M wins.
     const rec = recommendSize("shorts", { waist: 72, hips: 96 }, sizes);
-    expect(rec.bestIndex).toBe(0);
+    expect(rec.bestIndex).toBe(1);
   });
 });
