@@ -1,4 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import FitChecker from "@/components/fit-checker";
 
 export const Route = createFileRoute("/")({
@@ -88,10 +91,17 @@ const MEASURE_CARDS = [
 ];
 
 function Index() {
+  const { user } = useAuth();
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+  }
+
   return (
     <div className="min-h-screen bg-paper font-sans text-ink">
       {/* Nav */}
-      <nav className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:flex sm:px-6 sm:py-6">
+      <nav className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 px-3 py-4 sm:flex sm:items-center sm:gap-3 sm:px-6 sm:py-6">
         <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
           <div className="grid size-10 shrink-0 place-items-center rounded-xl border-2 border-ink bg-brand font-display text-xl font-bold text-white shadow-hard-xs sm:size-11 sm:rounded-2xl sm:text-2xl sm:shadow-hard-sm">
             R
@@ -115,6 +125,25 @@ function Index() {
         >
           My Wardrobe
         </Link>
+        {user ? (
+          <button
+            onClick={handleSignOut}
+            title={`Signed in as ${user.email ?? "you"} — tap to sign out`}
+            className="flex shrink-0 items-center gap-1.5 rounded-xl border-2 border-ink bg-mint px-2 py-1.5 shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:rounded-2xl sm:px-3 sm:py-2.5 sm:shadow-hard-sm"
+          >
+            <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-white font-display text-xs font-bold">
+              {(user.email?.[0] ?? "R").toUpperCase()}
+            </span>
+            <span className="font-display text-sm font-semibold">Sign out</span>
+          </button>
+        ) : (
+          <Link
+            to="/wardrobe"
+            className="shrink-0 rounded-xl border-2 border-ink bg-ink px-3 py-2.5 font-display text-sm font-semibold text-white shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:rounded-2xl sm:px-4 sm:py-3 sm:shadow-hard-sm"
+          >
+            Sign in
+          </Link>
+        )}
         <a
           href="#check"
           className="hidden rounded-2xl border-2 border-ink bg-ink px-4 py-3 font-display text-sm font-semibold text-white shadow-hard-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:block sm:pl-5 sm:pr-4"
