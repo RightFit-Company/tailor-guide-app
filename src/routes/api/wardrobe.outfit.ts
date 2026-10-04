@@ -11,8 +11,8 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
 
         const incoming = await request.formData();
         const images = incoming.getAll("image[]").filter((value): value is File => value instanceof File);
-        if (images.length < 1 || images.length > 2) {
-          return new Response("Choose a top, bottoms, or both", { status: 400 });
+        if (images.length < 1 || images.length > 6) {
+          return new Response("Choose between 1 and 6 items", { status: 400 });
         }
 
         const descriptions = incoming
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
         form.set("model", IMAGE_MODEL);
         form.set(
           "prompt",
-          `Create a realistic full-body street-style fashion photograph of one adult ${presentation} wearing the exact clothing shown in the reference images.${hairClause} ${referenceRoles} Preserve each garment's colour, cut, fabric appearance, pattern, print, logos, and visible details as closely as possible. The clothing must look naturally worn together and remain the clear focus. Neutral daylight, simple city background, natural standing pose, head-to-toe composition, editorial fashion photography. Do not add text, labels, borders, or extra people.`,
+          `Create a realistic full-body street-style fashion photograph of one adult ${presentation} wearing every clothing item and accessory shown in the reference images.${hairClause} ${referenceRoles} Preserve each garment's colour, cut, fabric appearance, pattern, print, logos, and visible details as closely as possible. Hats go on the head, belts at the waist, socks on the feet and visible, shoes on the feet. The clothing must look naturally worn together and remain the clear focus. Neutral daylight, simple city background, natural standing pose, head-to-toe composition, editorial fashion photography. Do not add text, labels, borders, or extra people.`,
         );
         form.set("quality", "medium");
         form.set("size", "1024x1536");
