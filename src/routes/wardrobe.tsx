@@ -217,7 +217,8 @@ function WardrobePage() {
         form.append("image[]", new File([blob], `${item.kind}.png`, { type: blob.type || "image/png" }));
         form.append("description", `${item.kind}: ${item.description}`);
       }
-      form.set("presentation", loadBodyType());
+      form.set("presentation", modelGender);
+      if (hairColor) form.set("hairColor", hairColor);
       await streamImage(
         "/api/wardrobe/outfit",
         form,
@@ -309,7 +310,30 @@ function WardrobePage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-5 grid gap-3 border-t-2 border-ink pt-5 sm:flex sm:flex-wrap sm:items-center">
+                 <div className="mt-5 grid gap-3 border-t-2 border-ink pt-5">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Who wears it?</p>
+                      <div className="flex flex-wrap gap-2" role="group" aria-label="Person in the photo">
+                        {(["woman", "man"] as const).map((g) => (
+                          <Button key={g} type="button" variant="outline" onClick={() => setModelGender(g)} className={`${btn} h-auto min-h-10 px-4 py-2 capitalize ${modelGender === g ? "bg-blue text-primary-foreground" : "bg-card"}`}>
+                            {g}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Hair colour <span className="font-medium normal-case">(optional)</span></p>
+                      <div className="flex flex-wrap gap-2" role="group" aria-label="Hair colour">
+                        {["black", "brown", "blonde", "red", "grey"].map((color) => (
+                          <Button key={color} type="button" variant="outline" onClick={() => setHairColor((current) => current === color ? null : color)} className={`${btn} h-auto min-h-10 px-4 py-2 capitalize ${hairColor === color ? "bg-sun text-ink" : "bg-card"}`}>
+                            {color}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
                   <Button type="button" disabled={makingOutfit} onClick={() => void makeOutfitPhoto()} className={`${btn} h-auto w-full whitespace-normal bg-blue text-center text-primary-foreground sm:w-auto sm:whitespace-nowrap`}>
                     <Sparkles aria-hidden="true" />{makingOutfit ? "Creating your outfit photo…" : outfitPhotoFinal ? "Create another photo" : "Create outfit photo"}
                   </Button>
