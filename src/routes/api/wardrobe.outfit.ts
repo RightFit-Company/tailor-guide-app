@@ -20,15 +20,18 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
           .filter((value): value is string => typeof value === "string")
           .map((value) => value.slice(0, 120));
         const presentation = incoming.get("presentation") === "man" ? "man" : "woman";
+        const hairRaw = incoming.get("hairColor");
+        const hairColor = typeof hairRaw === "string" && /^[a-z -]{3,24}$/i.test(hairRaw.trim()) ? hairRaw.trim().toLowerCase() : null;
         const streaming = incoming.get("stream") !== "false";
         const referenceRoles = descriptions.map((description, index) => `Reference ${index + 1}: ${description}.`).join(" ");
+        const hairClause = hairColor ? ` The person has ${hairColor} hair.` : "";
 
         const form = new FormData();
         for (const image of images) form.append("image[]", image);
         form.set("model", IMAGE_MODEL);
         form.set(
           "prompt",
-          `Create a realistic full-body street-style fashion photograph of one adult ${presentation} wearing the exact clothing shown in the reference images. ${referenceRoles} Preserve each garment's colour, cut, fabric appearance, pattern, print, logos, and visible details as closely as possible. The clothing must look naturally worn together and remain the clear focus. Neutral daylight, simple city background, natural standing pose, head-to-toe composition, editorial fashion photography. Do not add text, labels, borders, or extra people.`,
+          `Create a realistic full-body street-style fashion photograph of one adult ${presentation} wearing the exact clothing shown in the reference images.${hairClause} ${referenceRoles} Preserve each garment's colour, cut, fabric appearance, pattern, print, logos, and visible details as closely as possible. The clothing must look naturally worn together and remain the clear focus. Neutral daylight, simple city background, natural standing pose, head-to-toe composition, editorial fashion photography. Do not add text, labels, borders, or extra people.`,
         );
         form.set("quality", "medium");
         form.set("size", "1024x1536");
