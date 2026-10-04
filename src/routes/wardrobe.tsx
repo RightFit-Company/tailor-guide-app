@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Camera, ImagePlus, LogOut, Sparkles, Trash2, X } from "lucide-react";
+import { Camera, ImagePlus, LogOut, Pencil, Sparkles, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ClothesRail from "@/components/clothes-rail";
 import { Button } from "@/components/ui/button";
