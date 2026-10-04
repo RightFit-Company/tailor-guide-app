@@ -104,7 +104,7 @@ function ProfilePage() {
     setSaving(true);
     const { error } = await supabase.from("body_profiles").upsert({ user_id: user.id, avatar: { ...avatar }, body, updated_at: new Date().toISOString() });
     setSaving(false);
-    if (error) return toast.error("Couldn't save your profile — please try again.");
+    if (error) { toast.error("Couldn't save your profile — please try again.");
     try {
       const local = JSON.parse(localStorage.getItem("rightfit.body.v1") ?? "{}");
       localStorage.setItem("rightfit.body.v1", JSON.stringify({ ...local, ...body }));
@@ -117,12 +117,12 @@ function ProfilePage() {
 
   async function uploadPhoto(file: File) {
     if (!user) return;
-    if (!file.type.startsWith("image/")) return toast.error("Please choose a photo.");
-    if (file.size > 5 * 1024 * 1024) return toast.error("That photo is over 5 MB.");
+    if (!file.type.startsWith("image/")) { toast.error("Please choose a photo.");
+    if (file.size > 5 * 1024 * 1024) { toast.error("That photo is over 5 MB.");
     setUploading(true);
     const path = `${user.id}/profile-${crypto.randomUUID()}.${file.type.split("/")[1] ?? "jpg"}`;
     const up = await supabase.storage.from("wardrobe").upload(path, file, { contentType: file.type });
-    if (up.error) { setUploading(false); return toast.error("Couldn't upload that photo."); }
+    if (up.error) { setUploading(false); { toast.error("Couldn't upload that photo."); return; }
     if (saved.photoPath) await supabase.storage.from("wardrobe").remove([saved.photoPath]);
     const next = { ...saved, photoPath: path };
     await supabase.from("body_profiles").upsert({ user_id: user.id, avatar: { ...next }, updated_at: new Date().toISOString() });
@@ -136,7 +136,7 @@ function ProfilePage() {
     if (!session) return;
     setDeleting(true);
     const res = await fetch("/api/account/delete", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` } });
-    if (!res.ok) { setDeleting(false); return toast.error((await res.text()) || "Couldn't delete your account."); }
+    if (!res.ok) { setDeleting(false); { toast.error((await res.text()) || "Couldn't delete your account."); return; }
     localStorage.removeItem("rightfit.body.v1");
     localStorage.removeItem("rightfit.profile.v1");
     await supabase.auth.signOut();
