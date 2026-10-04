@@ -1,5 +1,5 @@
 export type Unit = "cm" | "in";
-export type GarmentType = "top" | "trousers";
+export type GarmentType = "top" | "trousers" | "shorts";
 export type Verdict = "small" | "slim" | "right" | "baggy";
 
 export const CM_PER_IN = 2.54;
@@ -15,6 +15,7 @@ export const toCm = (value: number, unit: Unit) =>
 const RANGES: Record<GarmentType, { small: number; slim: number; right: number }> = {
   top: { small: 4, slim: 10, right: 20 },
   trousers: { small: 3, slim: 8, right: 16 },
+  shorts: { small: 3, slim: 8, right: 16 },
 };
 
 export function classifyEase(easeCm: number, garment: GarmentType): Verdict {
@@ -87,6 +88,10 @@ const MEASURED_PAIRS: Record<GarmentType, { key: "chest" | "waist" | "hips"; lab
     { key: "waist", label: "Waist" },
   ],
   trousers: [
+    { key: "waist", label: "Waist" },
+    { key: "hips", label: "Hips" },
+  ],
+  shorts: [
     { key: "waist", label: "Waist" },
     { key: "hips", label: "Hips" },
   ],
