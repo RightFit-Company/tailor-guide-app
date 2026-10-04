@@ -14,6 +14,7 @@ import { Route as WardrobeRouteImport } from './routes/wardrobe'
 import { Route as ApiWardrobeAnalyzeRouteImport } from './routes/api/wardrobe.analyze'
 import { Route as ApiWardrobeCutoutRouteImport } from './routes/api/wardrobe.cutout'
 import { Route as ApiWardrobeOutfitRouteImport } from './routes/api/wardrobe.outfit'
+import { Route as ApiWardrobePickRouteImport } from './routes/api/wardrobe.pick'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const ApiWardrobeOutfitRoute = ApiWardrobeOutfitRouteImport.update({
   path: '/api/wardrobe/outfit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWardrobePickRoute = ApiWardrobePickRouteImport.update({
+  id: '/api/wardrobe/pick',
+  path: '/api/wardrobe/pick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
+  '/api/wardrobe/pick': typeof ApiWardrobePickRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
+  '/api/wardrobe/pick': typeof ApiWardrobePickRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +70,7 @@ export interface FileRoutesById {
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
+  '/api/wardrobe/pick': typeof ApiWardrobePickRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,6 +80,7 @@ export interface FileRouteTypes {
     | '/api/wardrobe/analyze'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
+    | '/api/wardrobe/pick'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -78,6 +88,7 @@ export interface FileRouteTypes {
     | '/api/wardrobe/analyze'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
+    | '/api/wardrobe/pick'
   id:
     | '__root__'
     | '/'
@@ -85,6 +96,7 @@ export interface FileRouteTypes {
     | '/api/wardrobe/analyze'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
+    | '/api/wardrobe/pick'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,6 +105,7 @@ export interface RootRouteChildren {
   ApiWardrobeAnalyzeRoute: typeof ApiWardrobeAnalyzeRoute
   ApiWardrobeCutoutRoute: typeof ApiWardrobeCutoutRoute
   ApiWardrobeOutfitRoute: typeof ApiWardrobeOutfitRoute
+  ApiWardrobePickRoute: typeof ApiWardrobePickRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -132,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWardrobeOutfitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/wardrobe/pick': {
+      id: '/api/wardrobe/pick'
+      path: '/api/wardrobe/pick'
+      fullPath: '/api/wardrobe/pick'
+      preLoaderRoute: typeof ApiWardrobePickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -141,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWardrobeAnalyzeRoute: ApiWardrobeAnalyzeRoute,
   ApiWardrobeCutoutRoute: ApiWardrobeCutoutRoute,
   ApiWardrobeOutfitRoute: ApiWardrobeOutfitRoute,
+  ApiWardrobePickRoute: ApiWardrobePickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

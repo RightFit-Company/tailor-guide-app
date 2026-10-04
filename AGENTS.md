@@ -16,3 +16,4 @@
 - Wardrobe cut-outs are normalized to a front-facing upright orientation before they are saved; why: catalog items must remain consistently oriented regardless of camera rotation.
 
 - Shorts are a third garment kind everywhere (fit checker, find-my-size, wardrobe); they use the trouser ease bands and waist/hips measurements, and brand charts fall back to the trouser chart when a brand has no separate shorts chart — why: shorts fit like trousers at the waist/hips and brands rarely publish separate shorts measurements.
+- Surprise-me outfits: /api/wardrobe/pick (bearer-verified) asks the chat model to choose wardrobe item ids for a style, then the normal outfit photo route renders them; why: AI picks only from the user's own items.

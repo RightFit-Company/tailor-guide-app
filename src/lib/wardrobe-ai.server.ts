@@ -87,3 +87,66 @@ export async function analyzeGarment(apiKey: string, image: string): Promise<Ana
     return new Response("The AI couldn't recognise this item. Try a clearer photo.", { status: 422 });
   }
 }
+
+export const OUTFIT_STYLES = ["casual", "smart casual", "formal", "sporty", "party", "cosy"] as const;
+export type OutfitStyle = (typeof OUTFIT_STYLES)[number];
+export type PickItem = { id: string; kind: string; description: string };
+
+/** Asks the AI to choose one item per slot from the user's wardrobe for a style. Returns chosen ids. */
+export async function pickOutfit(apiKey: string, style: OutfitStyle, items: PickItem[]): Promise<string[] | Response> {
+  const list = items.map((i) => `${i.id} | ${i.kind} | ${i.description}`).join("\n");
+  const res = await fetch(`${GATEWAY}/v1/responses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "fetch" },
+    body: JSON.stringify({
+      model: CHAT_MODEL,
+      stream: true,
+      store: false,
+      reasoning: { effort: "low", summary: "auto" },
+      include: ["reasoning.encrypted_content"],
+      text: {
+        format: {
+          type: "json_schema", name: "outfit", strict: true,
+          schema: { type: "object", additionalProperties: false, required: ["ids"], properties: { ids: { type: "array", items: { type: "string" } } } },
+        },
+      },
+      input: [{
+        role: "user",
+        content: [{
+          type: "input_text",
+          text: `Put together a stylish ${style} outfit from this wardrobe. Pick at most one item of each slot: hat, top, bottoms (trousers OR shorts, never both), belt, socks, shoes. Always include a top and bottoms when available. Only add hats, belts or socks if they suit the ${style} style. Make the colours go together, and vary your choice a little each time (random seed ${Math.floor(Math.random() * 1e6)}). Return only the ids.\n\nid | kind | description\n${list}`,
+        }],
+      }],
+    }),
+  });
+  if (!res.ok || !res.body) {
+    const text = await res.text().catch(() => "");
+    return new Response(text || "AI request failed", { status: res.status });
+  }
+  let out = "";
+  let failed: string | null = null;
+  const parser = createParser({
+    onEvent(ev) {
+      try {
+        const p = JSON.parse(ev.data);
+        if (p.type === "response.output_text.delta") out += p.delta ?? "";
+        if (p.type === "error" || p.type === "response.failed") failed = p.error?.message ?? p.response?.error?.message ?? "AI failed";
+      } catch { /* ignore */ }
+    },
+  });
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parser.feed(value);
+  }
+  if (failed) return new Response(failed, { status: 502 });
+  try {
+    const known = new Set(items.map((i) => i.id));
+    const ids = (JSON.parse(out) as { ids: string[] }).ids.filter((id) => known.has(id));
+    if (ids.length === 0) throw new Error("empty");
+    return ids;
+  } catch {
+    return new Response("The AI couldn't put an outfit together. Try again.", { status: 422 });
+  }
+}

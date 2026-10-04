@@ -37,6 +37,14 @@ const SLOTS: { slot: Slot; label: string; emoji: string }[] = [
 ];
 const slotOf = (kind: Kind): Slot => (kind === "trousers" || kind === "shorts" ? "bottoms" : kind);
 type Item = { id: string; kind: Kind; description: string; color: string; image_path: string; url: string };
+const STYLES = [
+  { value: "casual", label: "Casual", emoji: "👕" },
+  { value: "smart casual", label: "Smart casual", emoji: "🧥" },
+  { value: "formal", label: "Formal", emoji: "👔" },
+  { value: "sporty", label: "Sporty", emoji: "🏃" },
+  { value: "party", label: "Party", emoji: "🎉" },
+  { value: "cosy", label: "Cosy", emoji: "☕" },
+] as const;
 
 function loadBodyType(): BodyType {
   try {
@@ -138,6 +146,8 @@ function AuthCard() {
 function WardrobePage() {
   const { user, session, loading } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
+  const [style, setStyle] = useState<(typeof STYLES)[number]["value"] | null>(null);
+  const [picking, setPicking] = useState(false);
   const [selection, setSelection] = useState<Partial<Record<Slot, string>>>({});
   const [stage, setStage] = useState<null | "reading" | "cutting" | "saving">(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -226,14 +236,42 @@ function WardrobePage() {
     setOutfitPhotoFinal(false);
   }
 
-  async function makeOutfitPhoto() {
-    if (!session || chosen.length === 0) return;
+  async function surpriseMe() {
+    if (!session || !style || items.length === 0) return;
+    setError(null);
+    setPicking(true);
+    try {
+      const res = await fetch("/api/wardrobe/pick", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ style, items: items.map(({ id, kind, description }) => ({ id, kind, description })) }),
+      });
+      if (!res.ok) throw new Error((await res.text()) || "The AI couldn't pick an outfit");
+      const { ids } = (await res.json()) as { ids: string[] };
+      const next: Partial<Record<Slot, string>> = {};
+      for (const id of ids) {
+        const item = items.find((i) => i.id === id);
+        if (item && !next[slotOf(item.kind)]) next[slotOf(item.kind)] = id;
+      }
+      setSelection(next);
+      const picked = SLOTS.map(({ slot }) => items.find((i) => i.id === next[slot])).filter((i): i is Item => !!i);
+      setPicking(false);
+      setTimeout(() => document.getElementById("outfit-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+      await makeOutfitPhoto(picked);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The AI couldn't pick an outfit");
+    } finally {
+      setPicking(false);
+    }
+  }
+
+  async function makeOutfitPhoto(selected: Item[] = chosen) {
+    if (!session || selected.length === 0) return;
     setError(null);
     setOutfitPhoto(null);
     setOutfitPhotoFinal(false);
     setMakingOutfit(true);
     try {
-      const selected = chosen;
       const form = new FormData();
       for (const item of selected) {
         const response = await fetch(item.url);
@@ -316,8 +354,25 @@ function WardrobePage() {
               )}
             </section>
 
+            {items.length > 0 && (
+              <section className={`${card} mt-6 bg-mint p-4 sm:p-5`} aria-labelledby="surprise-heading">
+                <h2 id="surprise-heading" className="font-display text-2xl font-bold">✨ Surprise me</h2>
+                <p className="text-sm text-ink/80">Pick a vibe and the AI will put an outfit together from your wardrobe, then make a photo of it.</p>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap" role="group" aria-label="Outfit style">
+                  {STYLES.map((s) => (
+                    <Button key={s.value} type="button" variant="outline" onClick={() => setStyle(s.value)} aria-pressed={style === s.value} className={`${btn} h-auto min-h-11 px-3 py-2 ${style === s.value ? "bg-ink text-background" : "bg-card"}`}>
+                      <span aria-hidden="true">{s.emoji}</span>{s.label}
+                    </Button>
+                  ))}
+                </div>
+                <Button type="button" disabled={!style || picking || makingOutfit} onClick={() => void surpriseMe()} className={`${btn} mt-3 h-auto w-full bg-brand text-primary-foreground sm:w-auto`}>
+                  <Sparkles aria-hidden="true" />{picking ? "Picking your outfit…" : makingOutfit ? "Creating your photo…" : style ? "Put an outfit together" : "Choose a style first"}
+                </Button>
+              </section>
+            )}
+
             {chosen.length > 0 && (
-              <div className={`${card} mt-6 p-4 sm:p-5`}>
+              <div id="outfit-panel" className={`${card} mt-6 scroll-mt-4 p-4 sm:p-5`}>
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                   <div className="min-w-0">
                     <p className="font-display text-2xl font-bold">Your outfit</p>
