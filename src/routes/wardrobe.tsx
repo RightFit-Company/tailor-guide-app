@@ -128,6 +128,8 @@ function WardrobePage() {
   const [items, setItems] = useState<Item[]>([]);
   const [style, setStyle] = useState<(typeof STYLES)[number]["value"] | null>(null);
   const [picking, setPicking] = useState(false);
+  const [query, setQuery] = useState("");
+  const [kindFilter, setKindFilter] = useState<Kind | "all">("all");
   const [selection, setSelection] = useState<Partial<Record<Slot, string>>>({});
   const [stage, setStage] = useState<null | "reading" | "cutting" | "saving">(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -203,6 +205,7 @@ function WardrobePage() {
     await load();
   }
 
+  const visibleItems = items.filter((i) => (kindFilter === "all" || i.kind === kindFilter) && i.description.toLowerCase().includes(query.trim().toLowerCase()));
   const outfit = SLOTS.map(({ slot }) => items.find((item) => item.id === selection[slot]) ?? null);
   const chosen = outfit.filter((item): item is Item => item != null);
 
@@ -320,7 +323,7 @@ function WardrobePage() {
               <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:mb-5">
                 <div className="min-w-0">
                   <h2 id="catalog-heading" className="font-display text-2xl font-bold">Your clothes</h2>
-                  <p className="text-sm text-muted-foreground">Tap a hat, top, bottoms, belt, socks and shoes to build an outfit.</p>
+                  <p className="text-sm text-muted-foreground">Tap clothes to build an outfit — a coat or blazer can go over your top.</p>
                 </div>
                 {chosen.length > 0 && <span className="rounded-full border-2 border-ink bg-mint px-3 py-1 text-xs font-bold">{chosen.length} selected</span>}
               </div>
@@ -330,7 +333,17 @@ function WardrobePage() {
                   Your catalog is empty — scan your first item to add it.
                 </div>
               ) : (
-                <ClothesRail items={items} selectedIds={chosen.map((item) => item.id)} onSelect={selectItem} />
+                <>
+                  <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your clothes…" aria-label="Search your clothes" className="mb-3 w-full rounded-xl border-2 border-ink bg-background px-4 py-2.5" />
+                  <div className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1" role="group" aria-label="Filter by type">
+                    {(["all", ...KINDS.filter((k) => items.some((i) => i.kind === k))] as const).map((k) => (
+                      <Button key={k} type="button" variant="outline" aria-pressed={kindFilter === k} onClick={() => setKindFilter(k)} className={`h-auto min-h-10 shrink-0 rounded-full border-2 border-ink px-4 py-2 font-display font-semibold capitalize shadow-[2px_2px_0_0_var(--ink)] ${kindFilter === k ? "bg-sun text-ink" : "bg-card"}`}>
+                        {k === "all" ? "All" : k} <span className="text-xs opacity-60">{k === "all" ? items.length : items.filter((i) => i.kind === k).length}</span>
+                      </Button>
+                    ))}
+                  </div>
+                  {visibleItems.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">No clothes match that.</p> : <ClothesRail items={visibleItems} selectedIds={chosen.map((item) => item.id)} onSelect={selectItem} />}
+                </>
               )}
             </section>
 
