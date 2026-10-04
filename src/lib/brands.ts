@@ -13,7 +13,14 @@ export interface SizeEntry {
 export interface Brand {
   id: string;
   name: string;
-  charts: Record<Gender, Record<GarmentType, SizeEntry[]>>;
+  /** Shorts share the trouser chart when a brand has no separate shorts chart. */
+  charts: Record<Gender, { top: SizeEntry[]; trousers: SizeEntry[]; shorts?: SizeEntry[] }>;
+}
+
+/** Size chart for a garment, falling back to the trouser chart for shorts. */
+export function getSizes(brand: Brand, gender: Gender, garment: GarmentType): SizeEntry[] {
+  const chart = brand.charts[gender];
+  return chart[garment] ?? chart.trousers;
 }
 
 /**
@@ -319,5 +326,5 @@ export function getSizeEntry(
   sizeLabel: string,
 ): SizeEntry | undefined {
   const brand = BRANDS.find((b) => b.id === brandId);
-  return brand?.charts[gender][garment].find((s) => s.label === sizeLabel);
+  return brand ? getSizes(brand, gender, garment).find((s) => s.label === sizeLabel) : undefined;
 }

@@ -18,7 +18,7 @@ import {
   estimateInseamCm,
   LENGTH_META,
 } from "@/lib/fit";
-import { BRANDS, getSizeEntry, typicalInseamCm, type Gender } from "@/lib/brands";
+import { BRANDS, getSizeEntry, getSizes, typicalInseamCm, type Gender } from "@/lib/brands";
 
 const STORAGE_KEY = "rightfit.body.v1";
 
@@ -51,7 +51,7 @@ const BODY_FIELDS: { key: keyof Values; label: string; hint: string }[] = [
   {
     key: "hips",
     label: "Hips",
-    hint: "Around the fullest part of your hips and seat. Needed for trousers.",
+    hint: "Around the fullest part of your hips and seat. Needed for trousers and shorts.",
   },
 ];
 
@@ -166,7 +166,10 @@ function ToggleGroup<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-2 rounded-2xl border-2 border-ink bg-paper p-1">
+    <div
+      className="grid gap-2 rounded-2xl border-2 border-ink bg-paper p-1"
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
       {options.map((o) => (
         <button
           key={o.value}
@@ -250,7 +253,7 @@ export default function FitChecker() {
 
 
   const brand = BRANDS.find((b) => b.id === brandId) ?? BRANDS[0]!;
-  const sizes = brand.charts[gender][garmentType];
+  const sizes = getSizes(brand, gender, garmentType);
   const sizeEntry = sizeLabel ? getSizeEntry(brandId, gender, garmentType, sizeLabel) : undefined;
 
   const bodyRaw = parseValues(body);
@@ -259,7 +262,7 @@ export default function FitChecker() {
   const autoLegCm = bodyRaw.height != null ? estimateInseamCm(bodyRaw.height) : undefined;
   const legCm = legMode === "auto" ? autoLegCm : bodyRaw.inseam;
   const bodyReady = bodyRaw.chest != null && bodyParsed.waist != null;
-  const hipsMissing = garmentType === "trousers" && bodyParsed.hips == null;
+  const hipsMissing = garmentType !== "top" && bodyParsed.hips == null;
   const garmentReady = sizeEntry != null;
   const recommendation = useMemo(
     () => recommendSize(garmentType, bodyParsed, sizes),
@@ -513,6 +516,7 @@ export default function FitChecker() {
                 options={[
                   { value: "top", label: "Top" },
                   { value: "trousers", label: "Trousers" },
+                  { value: "shorts", label: "Shorts" },
                 ]}
                 value={garmentType}
                 onChange={(t) => {
@@ -579,7 +583,7 @@ export default function FitChecker() {
           </div>
           ) : hipsMissing ? (
             <p className="mt-4 text-sm font-bold text-ink/60">
-              Add your hip measurement on the body step to find your trouser size.
+              Add your hip measurement on the body step to find your size.
             </p>
           ) : (
             <div className="mt-4">
@@ -636,7 +640,7 @@ export default function FitChecker() {
             <div className="grid gap-2 sm:flex sm:items-center sm:gap-3">
               {hipsMissing && (
                 <span className="text-xs font-bold text-ink/50">
-                  Trousers need your hip measurement too
+                  Bottoms need your hip measurement too
                 </span>
               )}
               {!garmentReady && !hipsMissing && (

@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
         const incoming = await request.formData();
         const images = incoming.getAll("image[]").filter((value): value is File => value instanceof File);
         if (images.length < 1 || images.length > 2) {
-          return new Response("Choose one top, one pair of trousers, or both", { status: 400 });
+          return new Response("Choose a top, bottoms, or both", { status: 400 });
         }
 
         const descriptions = incoming
