@@ -14,7 +14,7 @@ export const Route = createFileRoute("/wardrobe")({
   head: () => ({
     meta: [
       { title: "My Wardrobe — RightFit" },
-      { name: "description", content: "Scan your tops, trousers and shorts, build outfits, and create realistic photos of people wearing your clothes." },
+      { name: "description", content: "Scan your tops, dresses, skirts, coats, trousers and shorts, build outfits, and create realistic photos of people wearing your clothes." },
       { property: "og:title", content: "My Wardrobe — RightFit" },
       { property: "og:description", content: "A private 2D catalog for your scanned clothes, with realistic AI outfit photos." },
       { property: "og:type", content: "website" },
@@ -24,18 +24,7 @@ export const Route = createFileRoute("/wardrobe")({
   component: WardrobePage,
 });
 
-type Kind = "top" | "trousers" | "shorts" | "shoes" | "socks" | "hat" | "belt";
-const KINDS: Kind[] = ["top", "trousers", "shorts", "shoes", "socks", "hat", "belt"];
-type Slot = "hat" | "top" | "bottoms" | "belt" | "socks" | "shoes";
-const SLOTS: { slot: Slot; label: string; emoji: string }[] = [
-  { slot: "hat", label: "Hat", emoji: "🧢" },
-  { slot: "top", label: "Top", emoji: "👕" },
-  { slot: "bottoms", label: "Bottoms", emoji: "👖" },
-  { slot: "belt", label: "Belt", emoji: "🪢" },
-  { slot: "socks", label: "Socks", emoji: "🧦" },
-  { slot: "shoes", label: "Shoes", emoji: "👟" },
-];
-const slotOf = (kind: Kind): Slot => (kind === "trousers" || kind === "shorts" ? "bottoms" : kind);
+import { KINDS, SLOTS, slotOf, toggleItem, type Kind, type Slot } from "@/lib/outfit-rules";
 type Item = { id: string; kind: Kind; description: string; color: string; image_path: string; url: string };
 const STYLES = [
   { value: "casual", label: "Casual", emoji: "👕" },
@@ -207,7 +196,7 @@ function WardrobePage() {
       const ins = await supabase.from("wardrobe_items").insert({ ...info, image_path: path }).select().single();
       if (ins.error) throw ins.error;
       await load();
-      setSelection((cur) => ({ ...cur, [slotOf(info.kind)]: ins.data.id }));
+      setSelection((cur) => toggleItem(cur, ins.data.id, info.kind, (otherId) => items.find((i) => i.id === otherId)?.kind));
       setOutfitPhoto(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -230,8 +219,7 @@ function WardrobePage() {
   function selectItem(id: string) {
     const item = items.find((candidate) => candidate.id === id);
     if (!item) return;
-    const sl = slotOf(item.kind);
-    setSelection((cur) => { const next = { ...cur }; if (next[sl] === id) delete next[sl]; else next[sl] = id; return next; });
+    setSelection((cur) => toggleItem(cur, id, item.kind, (otherId) => items.find((i) => i.id === otherId)?.kind));
     setOutfitPhoto(null);
     setOutfitPhotoFinal(false);
   }
@@ -248,10 +236,10 @@ function WardrobePage() {
       });
       if (!res.ok) throw new Error((await res.text()) || "The AI couldn't pick an outfit");
       const { ids } = (await res.json()) as { ids: string[] };
-      const next: Partial<Record<Slot, string>> = {};
+      let next: Partial<Record<Slot, string>> = {};
       for (const id of ids) {
         const item = items.find((i) => i.id === id);
-        if (item && !next[slotOf(item.kind)]) next[slotOf(item.kind)] = id;
+        if (item && !next[slotOf(item.kind)]) next = toggleItem(next, id, item.kind, (otherId) => items.find((i) => i.id === otherId)?.kind);
       }
       setSelection(next);
       const picked = SLOTS.map(({ slot }) => items.find((i) => i.id === next[slot])).filter((i): i is Item => !!i);

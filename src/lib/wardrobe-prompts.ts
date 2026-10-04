@@ -1,7 +1,7 @@
 export const WARDROBE_CUTOUT_PROMPT = [
   "Cut out only the clothing item and lay it flat, centred, and facing directly forward.",
   "Always rotate the garment into its natural upright orientation, even when the source photo is sideways or upside down.",
-  "For tops, place the neckline and shoulders at the top and the hem at the bottom.",
+  "For tops, blazers, coats and dresses, place the neckline and shoulders at the top and the hem at the bottom.",
   "For trousers, shorts, leggings, or skirts, place the waistband at the top and the legs or hem at the bottom.",
   "For shoes, show them upright with soles at the bottom; for socks, the cuff at the top; for hats, the crown at the top; for belts, lay them horizontally with the buckle visible.",
   "Remove the background, hanger, hands, and anything else.",

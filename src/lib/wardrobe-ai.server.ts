@@ -16,14 +16,16 @@ export async function verifyUser(request: Request): Promise<string | null> {
   return error || !data.user ? null : data.user.id;
 }
 
-export type Analysis = { kind: "top" | "trousers" | "shorts" | "shoes" | "socks" | "hat" | "belt"; description: string; color: string };
+import { KINDS, type Kind } from "./outfit-rules";
+
+export type Analysis = { kind: Kind; description: string; color: string };
 
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
   required: ["kind", "description", "color"],
   properties: {
-    kind: { type: "string", enum: ["top", "trousers", "shorts", "shoes", "socks", "hat", "belt"] },
+    kind: { type: "string", enum: KINDS },
     description: { type: "string", description: "Short everyday name with colour, e.g. 'dark jeans', 'pink t-shirt'" },
     color: { type: "string", description: "Main fabric colour as #rrggbb hex" },
   },
@@ -47,7 +49,7 @@ export async function analyzeGarment(apiKey: string, image: string): Promise<Ana
           content: [
             {
               type: "input_text",
-              text: "Identify this piece of clothing. Tops include t-shirts, shirts, jumpers, hoodies, jackets. Trousers include full-length jeans, joggers, leggings and skirts. Shorts include shorts, culottes and mini skirts. Shoes include trainers, boots, sandals and heels. Socks include all socks and tights. Hats include caps, beanies and bucket hats. Belts are belts.",
+              text: "Identify this piece of clothing. Tops include t-shirts, shirts, jumpers, hoodies and light jackets. Blazers are tailored suit-style jackets. Coats include coats, parkas, puffers and trench coats. Dresses include all dresses and jumpsuits. Skirts include all skirts. Trousers include full-length jeans, joggers and chinos. Leggings are leggings and jeggings. Shorts include shorts and culottes. Shoes include trainers, boots, sandals and heels. Socks include all socks and tights. Hats include caps, beanies and bucket hats. Belts are belts.",
             },
             { type: "input_image", image_url: image },
           ],
@@ -114,7 +116,7 @@ export async function pickOutfit(apiKey: string, style: OutfitStyle, items: Pick
         role: "user",
         content: [{
           type: "input_text",
-          text: `Put together a stylish ${style} outfit from this wardrobe. Pick at most one item of each slot: hat, top, bottoms (trousers OR shorts, never both), belt, socks, shoes. Always include a top and bottoms when available. Only add hats, belts or socks if they suit the ${style} style. Make the colours go together, and vary your choice a little each time (random seed ${Math.floor(Math.random() * 1e6)}). Return only the ids.\n\nid | kind | description\n${list}`,
+          text: `Put together a stylish ${style} outfit from this wardrobe. Pick at most one item of each slot: hat, coat or blazer, top, bottoms (trousers, shorts or leggings), skirt, dress, belt, socks, shoes. EITHER pick a dress (then no top, skirt or bottoms) OR a top with bottoms or a skirt. A skirt may only be combined with leggings, never trousers or shorts. A coat or blazer can go over anything. Only add a coat or blazer if it suits the style. Only add hats, belts or socks if they suit the ${style} style. Make the colours go together, and vary your choice a little each time (random seed ${Math.floor(Math.random() * 1e6)}). Return only the ids.\n\nid | kind | description\n${list}`,
         }],
       }],
     }),

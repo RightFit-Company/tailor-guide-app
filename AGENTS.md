@@ -17,3 +17,5 @@
 
 - Shorts are a third garment kind everywhere (fit checker, find-my-size, wardrobe); they use the trouser ease bands and waist/hips measurements, and brand charts fall back to the trouser chart when a brand has no separate shorts chart — why: shorts fit like trousers at the waist/hips and brands rarely publish separate shorts measurements.
 - Surprise-me outfits: /api/wardrobe/pick (bearer-verified) asks the chat model to choose wardrobe item ids for a style, then the normal outfit photo route renders them; why: AI picks only from the user's own items.
+- Outfit wearing rules (dress excludes top/skirt/bottoms; skirt pairs only with leggings; coat/blazer layers over anything) live in src/lib/outfit-rules.ts toggleItem; why: one tested source for manual picks and AI picks.
+- Skirts and dresses are fit-checker garments (skirt = bottom bands + trouser chart fallback; dress = top bands on bust/waist/hips, chart blended from top + trousers); blazers/coats are wardrobe-only; why: brands rarely publish separate charts.
