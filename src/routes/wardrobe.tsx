@@ -407,7 +407,7 @@ function WardrobePage() {
                     <div>
                       <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Hair colour <span className="font-medium normal-case">(optional)</span></p>
                       <div className="flex flex-wrap gap-2" role="group" aria-label="Hair colour">
-                        {["black", "brown", "blonde", "red", "grey"].map((color) => (
+                        {["no hair", "black", "brown", "blonde", "red", "grey"].map((color) => (
                           <Button key={color} type="button" variant="outline" onClick={() => setHairColor((current) => current === color ? null : color)} className={`${btn} h-auto min-h-10 px-4 py-2 capitalize ${hairColor === color ? "bg-sun text-ink" : "bg-card"}`}>
                             {color}
                           </Button>

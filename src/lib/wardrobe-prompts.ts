@@ -7,3 +7,8 @@ export const WARDROBE_CUTOUT_PROMPT = [
   "Remove the background, hanger, hands, and anything else.",
   "Keep the garment's exact colours, print, logos, proportions, and shape.",
 ].join(" ");
+
+export function outfitHairClause(hairChoice: string | null): string {
+  if (hairChoice === "no hair") return " The person has a shaved, hairless head.";
+  return hairChoice ? ` The person has ${hairChoice} hair.` : "";
+}

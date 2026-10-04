@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GATEWAY, IMAGE_MODEL, verifyUser } from "@/lib/wardrobe-ai.server";
+import { outfitHairClause } from "@/lib/wardrobe-prompts";
 
 export const Route = createFileRoute("/api/wardrobe/outfit")({
   server: {
@@ -35,7 +36,7 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
         const bodyClause = sizes.length ? ` Give the person a realistic body shape and build roughly matching these measurements: ${sizes.join(", ")}. Show the clothes fitting that body naturally.` : "";
         const streaming = incoming.get("stream") !== "false";
         const referenceRoles = descriptions.map((description, index) => `Reference ${index + 1}: ${description}.`).join(" ");
-        const hairClause = hairColor ? ` The person has ${hairColor} hair.` : "";
+        const hairClause = outfitHairClause(hairColor);
 
         const form = new FormData();
         for (const image of images) form.append("image[]", image);
