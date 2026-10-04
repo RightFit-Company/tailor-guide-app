@@ -18,6 +18,18 @@ const RANGES: Record<GarmentType, { small: number; slim: number; right: number }
   shorts: { small: 3, slim: 8, right: 16 },
 };
 
+/**
+ * Waistbands on bottoms need far less ease than hips or chest: more than
+ * about an inch (2.5 cm) of spare room and they slide or gape.
+ */
+const WAIST_RANGE = { small: 0, slim: 1.3, right: 2.5 };
+
+/** Ease band for a given measurement row — bottoms use the tight waist band. */
+function rangeFor(garment: GarmentType, key: "chest" | "waist" | "hips") {
+  if (key === "waist" && garment !== "top") return WAIST_RANGE;
+  return RANGES[garment];
+}
+
 export function classifyEase(easeCm: number, garment: GarmentType): Verdict {
   const t = RANGES[garment];
   if (easeCm < t.small) return "small";
@@ -65,6 +77,7 @@ export const VERDICT_META: Record<
 };
 
 export interface FitRow {
+  key: "chest" | "waist" | "hips";
   label: string;
   bodyCm: number;
   garmentCm: number;
@@ -140,7 +153,10 @@ export function computeFit(
     const bodyCm = toCm(bodyValue, unit);
     const garmentCm = toCm(garmentValue, unit) * (flatAcross ? 2 : 1);
     const easeCm = garmentCm - bodyCm;
-    rows.push({ label, bodyCm, garmentCm, easeCm, verdict: classifyEase(easeCm, garment) });
+    const t = rangeFor(garment, key);
+    const verdict: Verdict =
+      easeCm < t.small ? "small" : easeCm < t.slim ? "slim" : easeCm < t.right ? "right" : "baggy";
+    rows.push({ key, label, bodyCm, garmentCm, easeCm, verdict });
   }
   if (rows.length === 0) return null;
 
@@ -181,8 +197,8 @@ export function easeLabel(easeCm: number, unit: Unit): string {
 
 /** How far (cm) each row's ease falls outside the "Just right" band; 0 = perfect. */
 function rightBandMiss(result: FitResult): number {
-  const t = RANGES[result.garment];
   return result.rows.reduce((sum, r) => {
+    const t = rangeFor(result.garment, r.key);
     if (r.easeCm < t.slim) return sum + (t.slim - r.easeCm);
     if (r.easeCm >= t.right) return sum + (r.easeCm - t.right);
     return sum;
