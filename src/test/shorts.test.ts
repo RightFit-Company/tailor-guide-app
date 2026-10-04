@@ -42,15 +42,15 @@ describe("waist band on bottoms", () => {
     expect(waist?.verdict).toBe("right");
   });
 
-  it("treats more than 7 cm of hip ease as baggy", () => {
-    const result = computeFit("trousers", "cm", { waist: 80, hips: 100 }, { waist: 82, hips: 108 }, false);
+  it("treats more than 4 inches (10.16 cm) of hip ease as baggy", () => {
+    const result = computeFit("trousers", "cm", { waist: 80, hips: 100 }, { waist: 82, hips: 112 }, false);
     const hips = result?.rows.find((row) => row.key === "hips");
-    expect(hips?.easeCm).toBe(8);
+    expect(hips?.easeCm).toBe(12);
     expect(hips?.verdict).toBe("baggy");
   });
 
-  it("treats around 7 cm of hip ease as just right", () => {
-    const result = computeFit("trousers", "cm", { waist: 80, hips: 100 }, { waist: 82, hips: 106.9 }, false);
+  it("treats just under 4 inches (10.16 cm) of hip ease as just right", () => {
+    const result = computeFit("trousers", "cm", { waist: 80, hips: 100 }, { waist: 82, hips: 110.1 }, false);
     const hips = result?.rows.find((row) => row.key === "hips");
     expect(hips?.verdict).toBe("right");
   });
