@@ -216,7 +216,7 @@ function ToggleGroup<T extends string>({
   return (
     <div
       className="grid gap-2 rounded-2xl border-2 border-ink bg-paper p-1"
-      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      style={{ gridTemplateColumns: `repeat(${Math.min(options.length, 3)}, minmax(0, 1fr))` }}
     >
       {options.map((o) => (
         <button
