@@ -328,6 +328,21 @@ export default function FitChecker() {
     return () => clearTimeout(t);
   }, [user, body, bodyType, cup, legMode]);
 
+  const [saving, setSaving] = useState(false);
+  const saveMeasurements = async () => {
+    if (!user || saving) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("body_profiles")
+      .upsert({ user_id: user.id, body, profile: { bodyType, cup, legMode }, updated_at: new Date().toISOString() });
+    setSaving(false);
+    if (error) {
+      toast.error("Couldn't save your measurements — please try again.");
+    } else {
+      toast.success("Measurements saved to your account.");
+    }
+  };
+
 
   const brand = BRANDS.find((b) => b.id === brandId) ?? BRANDS[0]!;
   const sizes = getSizes(brand, gender, garmentType);
