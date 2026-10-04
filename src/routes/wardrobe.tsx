@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Camera, ImagePlus, LogOut, Sparkles, Trash2, X } from "lucide-react";
+import { Camera, ImagePlus, LogOut, Pencil, Sparkles, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ClothesRail from "@/components/clothes-rail";
 import { Button } from "@/components/ui/button";
@@ -132,6 +132,10 @@ function WardrobePage() {
   const [kindFilter, setKindFilter] = useState<Kind | "all">("all");
   const [selection, setSelection] = useState<Partial<Record<Slot, string>>>({});
   const [stage, setStage] = useState<null | "reading" | "cutting" | "saving">(null);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualKind, setManualKind] = useState<Kind>("top");
+  const [manualDesc, setManualDesc] = useState("");
+  const [manualColor, setManualColor] = useState("#3a3d44");
   const [preview, setPreview] = useState<string | null>(null);
   const [outfitPhoto, setOutfitPhoto] = useState<string | null>(null);
   const [outfitPhotoFinal, setOutfitPhotoFinal] = useState(false);
@@ -190,6 +194,47 @@ function WardrobePage() {
       await load();
       setSelection((cur) => toggleItem(cur, ins.data.id, info.kind, (otherId) => items.find((i) => i.id === otherId)?.kind));
       setOutfitPhoto(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setStage(null);
+      setPreview(null);
+    }
+  }
+
+  async function addManual() {
+    if (!session || !user) return;
+    const description = manualDesc.trim();
+    if (description.length < 3) return setError("Describe the item, e.g. \"navy hoodie\"");
+    setError(null);
+    setPreview(null);
+    try {
+      const auth = { Authorization: `Bearer ${session.access_token}` };
+      setStage("cutting");
+      const form = new FormData();
+      form.set("kind", manualKind);
+      form.set("description", description);
+      form.set("color", manualColor);
+      let final: string | null = null;
+      await streamImage("/api/wardrobe/create", form, (src, isFinal) => {
+        setPreview(src);
+        if (isFinal) final = src;
+      }, undefined, auth);
+      if (!final) throw new Error("The picture didn't finish. Please try again.");
+
+      setStage("saving");
+      const blob = await (await fetch(final)).blob();
+      const path = `${user.id}/${crypto.randomUUID()}.png`;
+      const up = await supabase.storage.from("wardrobe").upload(path, blob, { contentType: "image/png" });
+      if (up.error) throw up.error;
+      const info = { kind: manualKind, description, color: manualColor };
+      const ins = await supabase.from("wardrobe_items").insert({ ...info, image_path: path }).select().single();
+      if (ins.error) throw ins.error;
+      await load();
+      setSelection((cur) => toggleItem(cur, ins.data.id, info.kind, (otherId) => items.find((i) => i.id === otherId)?.kind));
+      setOutfitPhoto(null);
+      setManualOpen(false);
+      setManualDesc("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -312,8 +357,33 @@ function WardrobePage() {
                 <Camera aria-hidden="true" />
                 {stage === "reading" ? "Reading your item…" : stage === "cutting" ? "Cutting it out…" : stage === "saving" ? "Adding it…" : "Scan a clothing item"}
               </Button>
+              <Button type="button" variant="outline" disabled={!!stage} aria-expanded={manualOpen} onClick={() => setManualOpen((open) => !open)} className={`${btn} h-auto w-full bg-card sm:w-auto`}>
+                <Pencil aria-hidden="true" />Add without a photo
+              </Button>
               <span className="text-center text-sm text-muted-foreground sm:text-left">{items.length} item{items.length === 1 ? "" : "s"}</span>
             </div>
+            {manualOpen && (
+              <div className={`${card} mt-4 grid gap-3 p-4 sm:p-5`} aria-label="Add an item without a photo">
+                <p className="text-sm text-muted-foreground">Describe the item and the AI will draw it, then save it to your catalog like a scanned item.</p>
+                <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="group" aria-label="Item type">
+                  {KINDS.map((k) => (
+                    <Button key={k} type="button" variant="outline" aria-pressed={manualKind === k} onClick={() => setManualKind(k)} className={`h-auto min-h-10 shrink-0 rounded-full border-2 border-ink px-4 py-2 font-display font-semibold capitalize shadow-[2px_2px_0_0_var(--ink)] ${manualKind === k ? "bg-sun text-ink" : "bg-card"}`}>
+                      {k}
+                    </Button>
+                  ))}
+                </div>
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                  <input value={manualDesc} onChange={(e) => setManualDesc(e.target.value)} maxLength={120} placeholder='Describe it, e.g. "navy hoodie" or "black skinny jeans"' aria-label="Describe the item" className="w-full rounded-xl border-2 border-ink bg-background px-4 py-2.5" />
+                  <label className="flex items-center gap-2 text-sm font-bold">
+                    Colour
+                    <input type="color" value={manualColor} onChange={(e) => setManualColor(e.target.value)} aria-label="Item colour" className="h-11 w-14 cursor-pointer rounded-lg border-2 border-ink bg-background p-1" />
+                  </label>
+                </div>
+                <Button type="button" disabled={!!stage || manualDesc.trim().length < 3} onClick={() => void addManual()} className={`${btn} h-auto w-full bg-blue text-primary-foreground sm:w-auto`}>
+                  <Sparkles aria-hidden="true" />{stage ? "Adding it…" : "Draw it and add to my wardrobe"}
+                </Button>
+              </div>
+            )}
             {error && <p className={`${card} mt-4 bg-sun p-3 text-sm font-medium text-ink`}>{error}</p>}
             {preview && (
               <img src={preview} alt="Cut-out in progress" className={`${card} mt-4 h-48 w-48 object-contain p-2 transition-[filter] ${stage === "cutting" ? "blur-md" : "blur-0"}`} />

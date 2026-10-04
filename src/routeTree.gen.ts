@@ -14,6 +14,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as WardrobeRouteImport } from './routes/wardrobe'
 import { Route as ApiAccountDeleteRouteImport } from './routes/api/account.delete'
 import { Route as ApiWardrobeAnalyzeRouteImport } from './routes/api/wardrobe.analyze'
+import { Route as ApiWardrobeCreateRouteImport } from './routes/api/wardrobe.create'
 import { Route as ApiWardrobeCutoutRouteImport } from './routes/api/wardrobe.cutout'
 import { Route as ApiWardrobeOutfitRouteImport } from './routes/api/wardrobe.outfit'
 import { Route as ApiWardrobePickRouteImport } from './routes/api/wardrobe.pick'
@@ -43,6 +44,11 @@ const ApiWardrobeAnalyzeRoute = ApiWardrobeAnalyzeRouteImport.update({
   path: '/api/wardrobe/analyze',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWardrobeCreateRoute = ApiWardrobeCreateRouteImport.update({
+  id: '/api/wardrobe/create',
+  path: '/api/wardrobe/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWardrobeCutoutRoute = ApiWardrobeCutoutRouteImport.update({
   id: '/api/wardrobe/cutout',
   path: '/api/wardrobe/cutout',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/wardrobe': typeof WardrobeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
+  '/api/wardrobe/create': typeof ApiWardrobeCreateRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
   '/api/wardrobe/pick': typeof ApiWardrobePickRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/wardrobe': typeof WardrobeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
+  '/api/wardrobe/create': typeof ApiWardrobeCreateRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
   '/api/wardrobe/pick': typeof ApiWardrobePickRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/wardrobe': typeof WardrobeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
+  '/api/wardrobe/create': typeof ApiWardrobeCreateRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
   '/api/wardrobe/pick': typeof ApiWardrobePickRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/wardrobe'
     | '/api/account/delete'
     | '/api/wardrobe/analyze'
+    | '/api/wardrobe/create'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
     | '/api/wardrobe/pick'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/wardrobe'
     | '/api/account/delete'
     | '/api/wardrobe/analyze'
+    | '/api/wardrobe/create'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
     | '/api/wardrobe/pick'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/wardrobe'
     | '/api/account/delete'
     | '/api/wardrobe/analyze'
+    | '/api/wardrobe/create'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
     | '/api/wardrobe/pick'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   WardrobeRoute: typeof WardrobeRoute
   ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
   ApiWardrobeAnalyzeRoute: typeof ApiWardrobeAnalyzeRoute
+  ApiWardrobeCreateRoute: typeof ApiWardrobeCreateRoute
   ApiWardrobeCutoutRoute: typeof ApiWardrobeCutoutRoute
   ApiWardrobeOutfitRoute: typeof ApiWardrobeOutfitRoute
   ApiWardrobePickRoute: typeof ApiWardrobePickRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWardrobeAnalyzeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/wardrobe/create': {
+      id: '/api/wardrobe/create'
+      path: '/api/wardrobe/create'
+      fullPath: '/api/wardrobe/create'
+      preLoaderRoute: typeof ApiWardrobeCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/wardrobe/cutout': {
       id: '/api/wardrobe/cutout'
       path: '/api/wardrobe/cutout'
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   WardrobeRoute: WardrobeRoute,
   ApiAccountDeleteRoute: ApiAccountDeleteRoute,
   ApiWardrobeAnalyzeRoute: ApiWardrobeAnalyzeRoute,
+  ApiWardrobeCreateRoute: ApiWardrobeCreateRoute,
   ApiWardrobeCutoutRoute: ApiWardrobeCutoutRoute,
   ApiWardrobeOutfitRoute: ApiWardrobeOutfitRoute,
   ApiWardrobePickRoute: ApiWardrobePickRoute,
