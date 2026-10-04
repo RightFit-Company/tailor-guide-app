@@ -338,6 +338,7 @@ function WardrobePage() {
                     <Sparkles aria-hidden="true" />{makingOutfit ? "Creating your outfit photo…" : outfitPhotoFinal ? "Create another photo" : "Create outfit photo"}
                   </Button>
                   <p className="max-w-lg text-xs text-muted-foreground">AI creates a new fashion photo using your selected clothes as references. Small details may vary.</p>
+                  </div>
                 </div>
                 {(makingOutfit || outfitPhoto) && (
                   <div className="mt-5 overflow-hidden rounded-lg border-2 border-ink bg-muted">
