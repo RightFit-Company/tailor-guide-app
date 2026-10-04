@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useAvatar } from "@/hooks/use-avatar";
 import FitChecker from "@/components/fit-checker";
 
 export const Route = createFileRoute("/")({
@@ -92,11 +91,7 @@ const MEASURE_CARDS = [
 
 function Index() {
   const { user } = useAuth();
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    toast.success("Signed out");
-  }
+  const { photoUrl } = useAvatar(user);
 
   return (
     <div className="min-h-screen bg-paper font-sans text-ink">
@@ -126,16 +121,14 @@ function Index() {
           My Wardrobe
         </Link>
         {user ? (
-          <button
-            onClick={handleSignOut}
-            title={`Signed in as ${user.email ?? "you"} — tap to sign out`}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl border-2 border-ink bg-mint px-2 py-1.5 shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:rounded-2xl sm:px-3 sm:py-2.5 sm:shadow-hard-sm"
+          <Link
+            to="/profile"
+            aria-label="My profile"
+            title={`Signed in as ${user.email ?? "you"}`}
+            className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-ink bg-mint font-display text-base font-bold shadow-hard-xs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none sm:size-12 sm:shadow-hard-sm"
           >
-            <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-white font-display text-xs font-bold">
-              {(user.email?.[0] ?? "R").toUpperCase()}
-            </span>
-            <span className="font-display text-sm font-semibold">Sign out</span>
-          </button>
+            {photoUrl ? <img src={photoUrl} alt="" className="h-full w-full object-cover" /> : (user.email?.[0] ?? "R").toUpperCase()}
+          </Link>
         ) : (
           <Link
             to="/wardrobe"

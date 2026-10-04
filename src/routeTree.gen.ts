@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as WardrobeRouteImport } from './routes/wardrobe'
 import { Route as ApiAccountDeleteRouteImport } from './routes/api/account.delete'
 import { Route as ApiWardrobeAnalyzeRouteImport } from './routes/api/wardrobe.analyze'
@@ -20,6 +21,11 @@ import { Route as ApiWardrobePickRouteImport } from './routes/api/wardrobe.pick'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WardrobeRoute = WardrobeRouteImport.update({
@@ -55,6 +61,7 @@ const ApiWardrobePickRoute = ApiWardrobePickRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/profile': typeof ProfileRoute
   '/wardrobe': typeof WardrobeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/profile': typeof ProfileRoute
   '/wardrobe': typeof WardrobeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/profile': typeof ProfileRoute
   '/wardrobe': typeof WardrobeRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/profile'
     | '/wardrobe'
     | '/api/account/delete'
     | '/api/wardrobe/analyze'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/profile'
     | '/wardrobe'
     | '/api/account/delete'
     | '/api/wardrobe/analyze'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/profile'
     | '/wardrobe'
     | '/api/account/delete'
     | '/api/wardrobe/analyze'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProfileRoute: typeof ProfileRoute
   WardrobeRoute: typeof WardrobeRoute
   ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
   ApiWardrobeAnalyzeRoute: typeof ApiWardrobeAnalyzeRoute
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wardrobe': {
@@ -177,6 +197,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProfileRoute: ProfileRoute,
   WardrobeRoute: WardrobeRoute,
   ApiAccountDeleteRoute: ApiAccountDeleteRoute,
   ApiWardrobeAnalyzeRoute: ApiWardrobeAnalyzeRoute,
