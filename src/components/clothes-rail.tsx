@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export type RailItem = { id: string; url: string; kind: "top" | "trousers"; description: string; color: string };
+export type RailItem = { id: string; url: string; kind: "top" | "trousers" | "shorts"; description: string; color: string };
 
 export default function ClothesRail({
   items,
@@ -31,7 +31,7 @@ export default function ClothesRail({
                 {selected && <span className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-mint sm:right-2 sm:top-2 sm:h-8 sm:w-8"><Check aria-hidden="true" /></span>}
               </span>
               <span className="min-w-0 border-t-2 border-ink px-2.5 py-2.5 sm:px-3 sm:py-3">
-                <span className="block text-xs font-bold uppercase text-muted-foreground">{item.kind === "top" ? "Top" : "Trousers"}</span>
+                <span className="block text-xs font-bold uppercase text-muted-foreground">{item.kind === "top" ? "Top" : item.kind === "shorts" ? "Shorts" : "Trousers"}</span>
                 <span className="mt-1 block truncate font-display text-sm font-bold capitalize sm:text-base">{item.description}</span>
               </span>
             </span>

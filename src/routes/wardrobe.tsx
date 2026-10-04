@@ -14,7 +14,7 @@ export const Route = createFileRoute("/wardrobe")({
   head: () => ({
     meta: [
       { title: "My Wardrobe — RightFit" },
-      { name: "description", content: "Scan your tops and trousers, build outfits, and create realistic photos of people wearing your clothes." },
+      { name: "description", content: "Scan your tops, trousers and shorts, build outfits, and create realistic photos of people wearing your clothes." },
       { property: "og:title", content: "My Wardrobe — RightFit" },
       { property: "og:description", content: "A private 2D catalog for your scanned clothes, with realistic AI outfit photos." },
       { property: "og:type", content: "website" },
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/wardrobe")({
   component: WardrobePage,
 });
 
-type Item = { id: string; kind: "top" | "trousers"; description: string; color: string; image_path: string; url: string };
+type Item = { id: string; kind: "top" | "trousers" | "shorts"; description: string; color: string; image_path: string; url: string };
 
 function loadBodyType(): BodyType {
   try {
@@ -129,7 +129,7 @@ function WardrobePage() {
     const signed = rows.length
       ? (await supabase.storage.from("wardrobe").createSignedUrls(rows.map((r) => r.image_path), 3600)).data ?? []
       : [];
-    setItems(rows.map((r, i) => ({ ...r, kind: r.kind === "trousers" ? "trousers" : "top", url: signed[i]?.signedUrl ?? "" })));
+    setItems(rows.map((r, i) => ({ ...r, kind: r.kind === "trousers" ? "trousers" : r.kind === "shorts" ? "shorts" : "top", url: signed[i]?.signedUrl ?? "" })));
   }, []);
 
   useEffect(() => {
@@ -150,7 +150,7 @@ function WardrobePage() {
         body: JSON.stringify({ image: await fileToDataUrl(small) }),
       });
       if (!aRes.ok) throw new Error((await aRes.text()) || "Couldn't read that photo");
-      const info = (await aRes.json()) as { kind: "top" | "trousers"; description: string; color: string };
+      const info = (await aRes.json()) as { kind: "top" | "trousers" | "shorts"; description: string; color: string };
 
       setStage("cutting");
       const form = new FormData();
@@ -247,7 +247,7 @@ function WardrobePage() {
         </div>
         <h1 className="mt-4 font-display text-3xl font-bold sm:text-5xl">My Wardrobe</h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Scan your clothes, pick a top and trousers from your catalog, then create a realistic photo of someone wearing the outfit.
+          Scan your clothes, pick a top and bottoms from your catalog, then create a realistic photo of someone wearing the outfit.
         </p>
 
         {loading ? null : !user ? (
@@ -275,7 +275,7 @@ function WardrobePage() {
               <div className="mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:mb-5">
                 <div className="min-w-0">
                   <h2 id="catalog-heading" className="font-display text-2xl font-bold">Your clothes</h2>
-                  <p className="text-sm text-muted-foreground">Tap one top and one pair of trousers to build an outfit.</p>
+                  <p className="text-sm text-muted-foreground">Tap a top and bottoms (trousers or shorts) to build an outfit.</p>
                 </div>
                 {(top || trousers) && <span className="rounded-full border-2 border-ink bg-mint px-3 py-1 text-xs font-bold">{[top, trousers].filter(Boolean).length} selected</span>}
               </div>
@@ -301,9 +301,9 @@ function WardrobePage() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {([top, trousers] as const).map((item, index) => (
                     <div key={item?.id ?? (index === 0 ? "empty-top" : "empty-trousers")} className="grid min-h-24 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-xl border-2 border-ink bg-background p-3 sm:grid-cols-[5rem_minmax(0,1fr)]">
-                      {item ? <img src={item.url} alt={item.description} className="h-18 w-18 object-contain sm:h-20 sm:w-20" /> : <div className="flex h-18 w-18 items-center justify-center border-2 border-dashed border-ink/30 text-2xl sm:h-20 sm:w-20">{index === 0 ? "👕" : "👖"}</div>}
+                      {item ? <img src={item.url} alt={item.description} className="h-18 w-18 object-contain sm:h-20 sm:w-20" /> : <div className="flex h-18 w-18 items-center justify-center border-2 border-dashed border-ink/30 text-2xl sm:h-20 sm:w-20">{index === 0 ? "👕" : "🩳"}</div>}
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold uppercase text-muted-foreground">{index === 0 ? "Top" : "Trousers"}</p>
+                        <p className="text-xs font-bold uppercase text-muted-foreground">{index === 0 ? "Top" : "Bottoms"}</p>
                          <p className="truncate font-display text-lg font-bold capitalize">{item?.description ?? "Pick from your catalog"}</p>
                         {item && <Button type="button" variant="link" onClick={() => void remove(item)} className="mt-1 h-auto p-0 text-xs font-bold text-foreground underline"><Trash2 aria-hidden="true" />Remove</Button>}
                       </div>
