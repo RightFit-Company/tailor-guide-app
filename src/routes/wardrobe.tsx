@@ -309,10 +309,10 @@ function WardrobePage() {
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {outfit.map((item, index) => (
-                    <div key={SLOTS[index].slot} className="grid min-h-24 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-xl border-2 border-ink bg-background p-3 sm:grid-cols-[5rem_minmax(0,1fr)]">
-                      {item ? <img src={item.url} alt={item.description} className="h-18 w-18 object-contain sm:h-20 sm:w-20" /> : <div className="flex h-18 w-18 items-center justify-center border-2 border-dashed border-ink/30 text-2xl sm:h-20 sm:w-20">{SLOTS[index].emoji}</div>}
+                    <div key={SLOTS[index]!.slot} className="grid min-h-24 grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-xl border-2 border-ink bg-background p-3 sm:grid-cols-[5rem_minmax(0,1fr)]">
+                      {item ? <img src={item.url} alt={item.description} className="h-18 w-18 object-contain sm:h-20 sm:w-20" /> : <div className="flex h-18 w-18 items-center justify-center border-2 border-dashed border-ink/30 text-2xl sm:h-20 sm:w-20">{SLOTS[index]!.emoji}</div>}
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold uppercase text-muted-foreground">{SLOTS[index].label}</p>
+                        <p className="text-xs font-bold uppercase text-muted-foreground">{SLOTS[index]!.label}</p>
                          <p className="truncate font-display text-lg font-bold capitalize">{item?.description ?? "Pick from your catalog"}</p>
                         {item && <Button type="button" variant="link" onClick={() => void remove(item)} className="mt-1 h-auto p-0 text-xs font-bold text-foreground underline"><Trash2 aria-hidden="true" />Remove</Button>}
                       </div>
