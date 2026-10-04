@@ -12,8 +12,8 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
 
         const incoming = await request.formData();
         const images = incoming.getAll("image[]").filter((value): value is File => value instanceof File);
-        if (images.length < 1 || images.length > 6) {
-          return new Response("Choose between 1 and 6 items", { status: 400 });
+        if (images.length < 1 || images.length > 9) {
+          return new Response("Choose between 1 and 9 items", { status: 400 });
         }
 
         const descriptions = incoming
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/api/wardrobe/outfit")({
         form.set("model", IMAGE_MODEL);
         form.set(
           "prompt",
-          `Create a realistic full-body street-style fashion photograph of one adult ${presentation} wearing every clothing item and accessory shown in the reference images.${hairClause}${bodyClause} ${referenceRoles} Preserve each garment's colour, cut, fabric appearance, pattern, print, logos, and visible details as closely as possible. Hats go on the head, belts at the waist, socks on the feet and visible, shoes on the feet. The clothing must look naturally worn together and remain the clear focus. Neutral daylight, simple city background, natural standing pose, head-to-toe composition, editorial fashion photography. Do not add text, labels, borders, or extra people.`,
+          `Create a realistic full-body street-style fashion photograph of one adult ${presentation} wearing every clothing item and accessory shown in the reference images.${hairClause}${bodyClause} ${referenceRoles} Preserve each garment's colour, cut, fabric appearance, pattern, print, logos, and visible details as closely as possible. Hats go on the head, belts at the waist, socks on the feet and visible, shoes on the feet. A dress is worn on its own with no other top or bottoms. Leggings go under a skirt. A coat or blazer is worn open or closed over the top or dress so the outfit underneath is still partly visible. The clothing must look naturally worn together and remain the clear focus. Neutral daylight, simple city background, natural standing pose, head-to-toe composition, editorial fashion photography. Do not add text, labels, borders, or extra people.`,
         );
         form.set("quality", "medium");
         form.set("size", "1024x1536");

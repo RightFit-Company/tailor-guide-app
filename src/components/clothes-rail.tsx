@@ -1,7 +1,8 @@
 import { Check } from "lucide-react";
+import type { Kind } from "@/lib/outfit-rules";
 import { Button } from "@/components/ui/button";
 
-export type RailItem = { id: string; url: string; kind: "top" | "trousers" | "shorts" | "shoes" | "socks" | "hat" | "belt"; description: string; color: string };
+export type RailItem = { id: string; url: string; kind: Kind; description: string; color: string };
 
 export default function ClothesRail({
   items,
