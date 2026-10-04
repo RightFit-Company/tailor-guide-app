@@ -8,3 +8,4 @@
 - [x] Verify a signed-in selection-to-photo flow with an existing scanned wardrobe item.
 - [x] Optimise the fit checker, navigation, popup, and wardrobe for mobile screens.
 - [x] Verify the updated mobile layouts have no overflow or clipped controls.
+- [x] Keep every newly scanned wardrobe item upright in its saved cut-out.
