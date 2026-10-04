@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GATEWAY, IMAGE_MODEL, verifyUser } from "@/lib/wardrobe-ai.server";
+import { WARDROBE_CUTOUT_PROMPT } from "@/lib/wardrobe-prompts";
 
 export const Route = createFileRoute("/api/wardrobe/cutout")({
   server: {
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/api/wardrobe/cutout")({
         form.set("model", IMAGE_MODEL);
         form.set(
           "prompt",
-          "Cut out only the clothing item, laid flat and facing front, centred. Remove the background, hanger, hands and anything else. Keep its exact colours, print, logos and shape.",
+          WARDROBE_CUTOUT_PROMPT,
         );
         form.set("background", "transparent");
         form.set("output_format", "png");

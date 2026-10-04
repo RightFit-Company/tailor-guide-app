@@ -13,3 +13,4 @@
 - Wardrobe (/wardrobe) is the only backend feature: Cloud auth, `wardrobe_items` table + private `wardrobe` bucket (paths `{userId}/...`), RLS per user; why: wardrobe must follow the user across devices.
 - Wardrobe AI runs in bearer-verified server routes under src/routes/api/wardrobe.* (analyze = Responses JSON schema, cutout = image edit with transparent background); why: keeps the AI key server-side.
 - Outfit previews are generated from selected private wardrobe cut-outs and the local Woman/Man profile choice; body measurements remain local and are never sent for image generation.
+- Wardrobe cut-outs are normalized to a front-facing upright orientation before they are saved; why: catalog items must remain consistently oriented regardless of camera rotation.
