@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { streamImage } from "@/lib/stream-image";
-import type { BodyType } from "@/lib/fit";
+import { useAvatar } from "@/hooks/use-avatar";
 
 export const Route = createFileRoute("/wardrobe")({
   ssr: false,
@@ -34,15 +34,6 @@ const STYLES = [
   { value: "party", label: "Party", emoji: "🎉" },
   { value: "cosy", label: "Cosy", emoji: "☕" },
 ] as const;
-
-function loadBodyType(): BodyType {
-  try {
-    const profile = JSON.parse(localStorage.getItem("rightfit.profile.v1") ?? "{}") as { bodyType?: BodyType };
-    return profile.bodyType === "man" ? "man" : "woman";
-  } catch {
-    return "woman";
-  }
-}
 
 /** Rough body size in cm from the saved measurements, for the AI photo only. */
 function loadBodyCm(): { height?: number; chest?: number; waist?: number; hips?: number } {
@@ -143,8 +134,7 @@ function WardrobePage() {
   const [outfitPhoto, setOutfitPhoto] = useState<string | null>(null);
   const [outfitPhotoFinal, setOutfitPhotoFinal] = useState(false);
   const [makingOutfit, setMakingOutfit] = useState(false);
-  const [modelGender, setModelGender] = useState<BodyType>(() => loadBodyType());
-  const [hairColor, setHairColor] = useState<string | null>(null);
+  const { avatar } = useAvatar(user);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -268,8 +258,10 @@ function WardrobePage() {
         form.append("image[]", new File([blob], `${item.kind}.png`, { type: blob.type || "image/png" }));
         form.append("description", `${item.kind}: ${item.description}`);
       }
-      form.set("presentation", modelGender);
-      if (hairColor) form.set("hairColor", hairColor);
+      form.set("presentation", avatar.gender);
+      if (avatar.hair) form.set("hairColor", avatar.hair);
+      if (avatar.skin) form.set("skin", avatar.skin);
+      if (avatar.eyes) form.set("eyes", avatar.eyes);
       const bodyCm = loadBodyCm();
       for (const [key, value] of Object.entries(bodyCm)) form.set(key, String(value));
       await streamImage(
@@ -381,28 +373,7 @@ function WardrobePage() {
                   ))}
                 </div>
                  <div className="mt-5 grid gap-3 border-t-2 border-ink pt-5">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Who wears it?</p>
-                      <div className="flex flex-wrap gap-2" role="group" aria-label="Person in the photo">
-                        {(["woman", "man"] as const).map((g) => (
-                          <Button key={g} type="button" variant="outline" onClick={() => setModelGender(g)} className={`${btn} h-auto min-h-10 px-4 py-2 capitalize ${modelGender === g ? "bg-blue text-primary-foreground" : "bg-card"}`}>
-                            {g}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Hair colour <span className="font-medium normal-case">(optional)</span></p>
-                      <div className="flex flex-wrap gap-2" role="group" aria-label="Hair colour">
-                        {["no hair", "black", "brown", "blonde", "red", "grey"].map((color) => (
-                          <Button key={color} type="button" variant="outline" onClick={() => setHairColor((current) => current === color ? null : color)} className={`${btn} h-auto min-h-10 px-4 py-2 capitalize ${hairColor === color ? "bg-sun text-ink" : "bg-card"}`}>
-                            {color}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  <p className="text-sm text-muted-foreground">The person in the photo uses your avatar: <span className="font-bold capitalize text-foreground">{[avatar.skin, avatar.gender, avatar.hair && (avatar.hair === "no hair" ? "no hair" : `${avatar.hair} hair`), avatar.eyes && `${avatar.eyes} eyes`].filter(Boolean).join(", ")}</span>. <Link to="/profile" className="font-bold text-foreground underline">Change avatar</Link></p>
                   <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
                   <Button type="button" disabled={makingOutfit} onClick={() => void makeOutfitPhoto()} className={`${btn} h-auto w-full whitespace-normal bg-blue text-center text-primary-foreground sm:w-auto sm:whitespace-nowrap`}>
                     <Sparkles aria-hidden="true" />{makingOutfit ? "Creating your outfit photo…" : outfitPhotoFinal ? "Create another photo" : "Create outfit photo"}

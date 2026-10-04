@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as WardrobeRouteImport } from './routes/wardrobe'
+import { Route as ApiAccountDeleteRouteImport } from './routes/api/account.delete'
 import { Route as ApiWardrobeAnalyzeRouteImport } from './routes/api/wardrobe.analyze'
 import { Route as ApiWardrobeCutoutRouteImport } from './routes/api/wardrobe.cutout'
 import { Route as ApiWardrobeOutfitRouteImport } from './routes/api/wardrobe.outfit'
@@ -21,9 +23,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WardrobeRoute = WardrobeRouteImport.update({
   id: '/wardrobe',
   path: '/wardrobe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
+  id: '/api/account/delete',
+  path: '/api/account/delete',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWardrobeAnalyzeRoute = ApiWardrobeAnalyzeRouteImport.update({
@@ -49,7 +61,9 @@ const ApiWardrobePickRoute = ApiWardrobePickRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/profile': typeof ProfileRoute
   '/wardrobe': typeof WardrobeRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
@@ -57,7 +71,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/profile': typeof ProfileRoute
   '/wardrobe': typeof WardrobeRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
@@ -66,7 +82,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/profile': typeof ProfileRoute
   '/wardrobe': typeof WardrobeRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/wardrobe/analyze': typeof ApiWardrobeAnalyzeRoute
   '/api/wardrobe/cutout': typeof ApiWardrobeCutoutRoute
   '/api/wardrobe/outfit': typeof ApiWardrobeOutfitRoute
@@ -76,7 +94,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/profile'
     | '/wardrobe'
+    | '/api/account/delete'
     | '/api/wardrobe/analyze'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
@@ -84,7 +104,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/profile'
     | '/wardrobe'
+    | '/api/account/delete'
     | '/api/wardrobe/analyze'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
@@ -92,7 +114,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/profile'
     | '/wardrobe'
+    | '/api/account/delete'
     | '/api/wardrobe/analyze'
     | '/api/wardrobe/cutout'
     | '/api/wardrobe/outfit'
@@ -101,7 +125,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProfileRoute: typeof ProfileRoute
   WardrobeRoute: typeof WardrobeRoute
+  ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
   ApiWardrobeAnalyzeRoute: typeof ApiWardrobeAnalyzeRoute
   ApiWardrobeCutoutRoute: typeof ApiWardrobeCutoutRoute
   ApiWardrobeOutfitRoute: typeof ApiWardrobeOutfitRoute
@@ -117,11 +143,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wardrobe': {
       id: '/wardrobe'
       path: '/wardrobe'
       fullPath: '/wardrobe'
       preLoaderRoute: typeof WardrobeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/delete': {
+      id: '/api/account/delete'
+      path: '/api/account/delete'
+      fullPath: '/api/account/delete'
+      preLoaderRoute: typeof ApiAccountDeleteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/wardrobe/analyze': {
@@ -157,7 +197,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProfileRoute: ProfileRoute,
   WardrobeRoute: WardrobeRoute,
+  ApiAccountDeleteRoute: ApiAccountDeleteRoute,
   ApiWardrobeAnalyzeRoute: ApiWardrobeAnalyzeRoute,
   ApiWardrobeCutoutRoute: ApiWardrobeCutoutRoute,
   ApiWardrobeOutfitRoute: ApiWardrobeOutfitRoute,

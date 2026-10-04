@@ -16,18 +16,21 @@ export type Database = {
     Tables: {
       body_profiles: {
         Row: {
+          avatar: Json
           body: Json
           profile: Json
           updated_at: string
           user_id: string
         }
         Insert: {
+          avatar?: Json
           body?: Json
           profile?: Json
           updated_at?: string
           user_id?: string
         }
         Update: {
+          avatar?: Json
           body?: Json
           profile?: Json
           updated_at?: string
