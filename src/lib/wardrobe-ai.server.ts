@@ -16,14 +16,14 @@ export async function verifyUser(request: Request): Promise<string | null> {
   return error || !data.user ? null : data.user.id;
 }
 
-export type Analysis = { kind: "top" | "trousers" | "shorts"; description: string; color: string };
+export type Analysis = { kind: "top" | "trousers" | "shorts" | "shoes" | "socks" | "hat" | "belt"; description: string; color: string };
 
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
   required: ["kind", "description", "color"],
   properties: {
-    kind: { type: "string", enum: ["top", "trousers", "shorts"] },
+    kind: { type: "string", enum: ["top", "trousers", "shorts", "shoes", "socks", "hat", "belt"] },
     description: { type: "string", description: "Short everyday name with colour, e.g. 'dark jeans', 'pink t-shirt'" },
     color: { type: "string", description: "Main fabric colour as #rrggbb hex" },
   },
@@ -47,7 +47,7 @@ export async function analyzeGarment(apiKey: string, image: string): Promise<Ana
           content: [
             {
               type: "input_text",
-              text: "Identify this piece of clothing. Tops include t-shirts, shirts, jumpers, hoodies, jackets. Trousers include full-length jeans, joggers, leggings and skirts. Shorts include shorts, culottes and mini skirts.",
+              text: "Identify this piece of clothing. Tops include t-shirts, shirts, jumpers, hoodies, jackets. Trousers include full-length jeans, joggers, leggings and skirts. Shorts include shorts, culottes and mini skirts. Shoes include trainers, boots, sandals and heels. Socks include all socks and tights. Hats include caps, beanies and bucket hats. Belts are belts.",
             },
             { type: "input_image", image_url: image },
           ],
