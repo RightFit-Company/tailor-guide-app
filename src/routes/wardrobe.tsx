@@ -159,8 +159,9 @@ function WardrobePage() {
     if (user) void load();
   }, [user, load]);
 
-  const startOfDay = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/London" }).split(",")[0] ?? "");
-  const addedToday = items.filter((i) => new Date((i as { created_at?: string }).created_at ?? 0).getTime() >= startOfDay.getTime() - 3600_000 && new Date((i as { created_at?: string }).created_at ?? 0).toLocaleDateString("en-GB", { timeZone: "Europe/London" }) === new Date().toLocaleDateString("en-GB", { timeZone: "Europe/London" })).length;
+  const londonDay = (d: Date) => d.toLocaleDateString("en-GB", { timeZone: "Europe/London" });
+  const today = londonDay(new Date());
+  const addedToday = items.filter((i) => { const c = (i as { created_at?: string }).created_at; return !!c && londonDay(new Date(c)) === today; }).length;
   const limitReached = addedToday >= DAILY_LIMIT;
 
   async function scan(file: File) {
