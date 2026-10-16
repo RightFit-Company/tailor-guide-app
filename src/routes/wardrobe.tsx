@@ -237,6 +237,7 @@ function WardrobePage() {
       } catch {
         throw new Error("Adding clothes is currently unavailable");
       }
+      if (!final) throw new Error("The picture didn't finish. Please try again.");
 
       setStage("saving");
       const blob = await (await fetch(final)).blob();
@@ -525,7 +526,7 @@ function WardrobePage() {
       </div>
 
       <Dialog open={!!error} onOpenChange={(open) => { if (!open) setError(null); }}>
-        <DialogContent className="max-w-sm rounded-2xl border-2 border-ink bg-card p-6 shadow-[var(--shadow-hard)] sm:max-w-sm" showCloseButton={false}>
+        <DialogContent className="max-w-sm rounded-2xl border-2 border-ink bg-card p-6 shadow-[var(--shadow-hard)] sm:max-w-sm">
           <DialogTitle className="pr-6 font-display text-2xl font-bold leading-snug">{error}</DialogTitle>
           <p className="mt-1 text-sm text-muted-foreground">Please try again later.</p>
           <Button type="button" onClick={() => setError(null)} className={`${btn} mt-4 h-auto w-full bg-brand text-primary-foreground`}>OK</Button>
