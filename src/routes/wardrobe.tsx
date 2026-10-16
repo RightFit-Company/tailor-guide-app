@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Camera, ImagePlus, LogOut, Pencil, Sparkles, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ClothesRail from "@/components/clothes-rail";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -178,17 +179,21 @@ function WardrobePage() {
         headers: { ...auth, "Content-Type": "application/json" },
         body: JSON.stringify({ image: await fileToDataUrl(small) }),
       });
-      if (!aRes.ok) throw new Error((await aRes.text()) || "Couldn't read that photo");
+      if (!aRes.ok) throw new Error("Adding clothes is currently unavailable");
       const info = (await aRes.json()) as { kind: Kind; description: string; color: string };
 
       setStage("cutting");
       const form = new FormData();
       form.append("image", new File([small], "item.jpg", { type: "image/jpeg" }));
       let final: string | null = null;
-      await streamImage("/api/wardrobe/cutout", form, (src, isFinal) => {
-        setPreview(src);
-        if (isFinal) final = src;
-      }, undefined, auth);
+      try {
+        await streamImage("/api/wardrobe/cutout", form, (src, isFinal) => {
+          setPreview(src);
+          if (isFinal) final = src;
+        }, undefined, auth);
+      } catch {
+        throw new Error("Adding clothes is currently unavailable");
+      }
       if (!final) throw new Error("The cut-out didn't finish. Please try again.");
 
       setStage("saving");
@@ -224,10 +229,14 @@ function WardrobePage() {
       form.set("description", description);
       form.set("color", manualColor);
       let final: string | null = null;
-      await streamImage("/api/wardrobe/create", form, (src, isFinal) => {
-        setPreview(src);
-        if (isFinal) final = src;
-      }, undefined, auth);
+      try {
+        await streamImage("/api/wardrobe/create", form, (src, isFinal) => {
+          setPreview(src);
+          if (isFinal) final = src;
+        }, undefined, auth);
+      } catch {
+        throw new Error("Adding clothes is currently unavailable");
+      }
       if (!final) throw new Error("The picture didn't finish. Please try again.");
 
       setStage("saving");
@@ -413,7 +422,6 @@ function WardrobePage() {
                 </Button>
               </div>
             )}
-            {error && <p className={`${card} mt-4 bg-sun p-3 text-sm font-medium text-ink`}>{error}</p>}
             {preview && (
               <img src={preview} alt="Cut-out in progress" className={`${card} mt-4 h-48 w-48 object-contain p-2 transition-[filter] ${stage === "cutting" ? "blur-md" : "blur-0"}`} />
             )}
@@ -516,6 +524,14 @@ function WardrobePage() {
           </>
         )}
       </div>
+
+      <Dialog open={!!error} onOpenChange={(open) => { if (!open) setError(null); }}>
+        <DialogContent className="max-w-sm rounded-2xl border-2 border-ink bg-card p-6 shadow-[var(--shadow-hard)] sm:max-w-sm">
+          <DialogTitle className="pr-6 font-display text-2xl font-bold leading-snug">{error}</DialogTitle>
+          <p className="mt-1 text-sm text-muted-foreground">Please try again later.</p>
+          <Button type="button" onClick={() => setError(null)} className={`${btn} mt-4 h-auto w-full bg-brand text-primary-foreground`}>OK</Button>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
