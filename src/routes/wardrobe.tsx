@@ -179,17 +179,21 @@ function WardrobePage() {
         headers: { ...auth, "Content-Type": "application/json" },
         body: JSON.stringify({ image: await fileToDataUrl(small) }),
       });
-      if (!aRes.ok) throw new Error((await aRes.text()) || "Couldn't read that photo");
+      if (!aRes.ok) throw new Error("Adding clothes is currently unavailable");
       const info = (await aRes.json()) as { kind: Kind; description: string; color: string };
 
       setStage("cutting");
       const form = new FormData();
       form.append("image", new File([small], "item.jpg", { type: "image/jpeg" }));
       let final: string | null = null;
-      await streamImage("/api/wardrobe/cutout", form, (src, isFinal) => {
-        setPreview(src);
-        if (isFinal) final = src;
-      }, undefined, auth);
+      try {
+        await streamImage("/api/wardrobe/cutout", form, (src, isFinal) => {
+          setPreview(src);
+          if (isFinal) final = src;
+        }, undefined, auth);
+      } catch {
+        throw new Error("Adding clothes is currently unavailable");
+      }
       if (!final) throw new Error("The cut-out didn't finish. Please try again.");
 
       setStage("saving");
@@ -225,11 +229,14 @@ function WardrobePage() {
       form.set("description", description);
       form.set("color", manualColor);
       let final: string | null = null;
-      await streamImage("/api/wardrobe/create", form, (src, isFinal) => {
-        setPreview(src);
-        if (isFinal) final = src;
-      }, undefined, auth);
-      if (!final) throw new Error("The picture didn't finish. Please try again.");
+      try {
+        await streamImage("/api/wardrobe/create", form, (src, isFinal) => {
+          setPreview(src);
+          if (isFinal) final = src;
+        }, undefined, auth);
+      } catch {
+        throw new Error("Adding clothes is currently unavailable");
+      }
 
       setStage("saving");
       const blob = await (await fetch(final)).blob();
