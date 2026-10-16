@@ -523,6 +523,14 @@ function WardrobePage() {
           </>
         )}
       </div>
+
+      <Dialog open={!!error} onOpenChange={(open) => { if (!open) setError(null); }}>
+        <DialogContent className="max-w-sm rounded-2xl border-2 border-ink bg-card p-6 shadow-[var(--shadow-hard)] sm:max-w-sm" showCloseButton={false}>
+          <DialogTitle className="pr-6 font-display text-2xl font-bold leading-snug">{error}</DialogTitle>
+          <p className="mt-1 text-sm text-muted-foreground">Please try again later.</p>
+          <Button type="button" onClick={() => setError(null)} className={`${btn} mt-4 h-auto w-full bg-brand text-primary-foreground`}>OK</Button>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
