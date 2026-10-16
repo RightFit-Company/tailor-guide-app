@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Camera, ImagePlus, LogOut, Pencil, Sparkles, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ClothesRail from "@/components/clothes-rail";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
