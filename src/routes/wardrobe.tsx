@@ -313,8 +313,8 @@ function WardrobePage() {
       setPicking(false);
       setTimeout(() => document.getElementById("outfit-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       await makeOutfitPhoto(picked);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The AI couldn't pick an outfit");
+    } catch {
+      setError("Try on is currently unavailable");
     } finally {
       setPicking(false);
     }
@@ -351,8 +351,8 @@ function WardrobePage() {
         undefined,
         { Authorization: `Bearer ${session.access_token}` },
       );
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The outfit photo could not be made");
+    } catch {
+      setError("Try on is currently unavailable");
     } finally {
       setMakingOutfit(false);
     }
