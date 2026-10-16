@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { streamImage } from "@/lib/stream-image";
 import { useAvatar } from "@/hooks/use-avatar";
 
+const DAILY_LIMIT = 5;
 export const Route = createFileRoute("/wardrobe")({
   ssr: false,
   head: () => ({
@@ -158,8 +159,13 @@ function WardrobePage() {
     if (user) void load();
   }, [user, load]);
 
+  const startOfDay = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/London" }).split(",")[0] ?? "");
+  const addedToday = items.filter((i) => new Date((i as { created_at?: string }).created_at ?? 0).getTime() >= startOfDay.getTime() - 3600_000 && new Date((i as { created_at?: string }).created_at ?? 0).toLocaleDateString("en-GB", { timeZone: "Europe/London" }) === new Date().toLocaleDateString("en-GB", { timeZone: "Europe/London" })).length;
+  const limitReached = addedToday >= DAILY_LIMIT;
+
   async function scan(file: File) {
     if (!session || !user) return;
+    if (limitReached) return setError(`You can add ${DAILY_LIMIT} items a day. Come back tomorrow to add more.`);
     setError(null);
     setPreview(null);
     try {
@@ -205,6 +211,7 @@ function WardrobePage() {
   async function addManual() {
     if (!session || !user) return;
     const description = manualDesc.trim();
+    if (limitReached) return setError(`You can add ${DAILY_LIMIT} items a day. Come back tomorrow to add more.`);
     if (description.length < 3) return setError("Describe the item, e.g. \"navy hoodie\"");
     setError(null);
     setPreview(null);
@@ -374,14 +381,14 @@ function WardrobePage() {
                 e.target.value = "";
                 if (f) void scan(f);
               }} />
-              <Button disabled={!!stage} onClick={() => fileRef.current?.click()} className={`${btn} h-auto w-full bg-brand text-primary-foreground sm:w-auto`}>
+              <Button disabled={!!stage || limitReached} onClick={() => fileRef.current?.click()} className={`${btn} h-auto w-full bg-brand text-primary-foreground sm:w-auto`}>
                 <Camera aria-hidden="true" />
                 {stage === "reading" ? "Reading your item…" : stage === "cutting" ? "Cutting it out…" : stage === "saving" ? "Adding it…" : "Scan a clothing item"}
               </Button>
-              <Button type="button" variant="outline" disabled={!!stage} aria-expanded={manualOpen} onClick={() => setManualOpen((open) => !open)} className={`${btn} h-auto w-full bg-card sm:w-auto`}>
+              <Button type="button" variant="outline" disabled={!!stage || limitReached} aria-expanded={manualOpen} onClick={() => setManualOpen((open) => !open)} className={`${btn} h-auto w-full bg-card sm:w-auto`}>
                 <Pencil aria-hidden="true" />Add without a photo
               </Button>
-              <span className="text-center text-sm text-muted-foreground sm:text-left">{items.length} item{items.length === 1 ? "" : "s"}</span>
+              <span className="text-center text-sm text-muted-foreground sm:text-left">{items.length} item{items.length === 1 ? "" : "s"} · {Math.max(0, DAILY_LIMIT - addedToday)} of {DAILY_LIMIT} adds left today</span>
             </div>
             {manualOpen && (
               <div className={`${card} mt-4 grid gap-3 p-4 sm:p-5`} aria-label="Add an item without a photo">
