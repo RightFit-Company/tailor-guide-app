@@ -421,7 +421,6 @@ function WardrobePage() {
                 </Button>
               </div>
             )}
-            {error && <p className={`${card} mt-4 bg-sun p-3 text-sm font-medium text-ink`}>{error}</p>}
             {preview && (
               <img src={preview} alt="Cut-out in progress" className={`${card} mt-4 h-48 w-48 object-contain p-2 transition-[filter] ${stage === "cutting" ? "blur-md" : "blur-0"}`} />
             )}
